@@ -1,19 +1,32 @@
 {
     "name": "ws_task",
     "version": "1.0.0",
-    "description": "Template for the WebSocket remote control task",
+    "description": "Websocket Battleship game",
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "start": "node ./index.js",
-        "start:dev": "nodemon ./index.js",
+        "watch": "cross-env NODE_ENV=development webpack --watch",
+        "build": "cross-env NODE_ENV=production webpack",
+        "start:dev": "nodemon ./dist/index.js",
+        "start": "node ./dist/index.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
-    "author": "Andrei Auchynnikau",
+    "author": "Henadzi Shutko",
     "keywords": [],
     "license": "ISC",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hazardsoft/node-websockets-ui"
+    },
     "devDependencies": {
-        "nodemon": "^2.0.16"
+        "@types/node": "^20.3.3",
+        "cross-env": "^7.0.3",
+        "nodemon": "^2.0.16",
+        "ts-loader": "^9.4.4",
+        "tslib": "^2.6.0",
+        "typescript": "^5.1.6",
+        "webpack": "^5.88.1",
+        "webpack-cli": "^5.1.4"
     },
     "dependencies": {
         "ws": "^8.8.0"
