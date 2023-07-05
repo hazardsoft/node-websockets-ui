@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { RegPayload } from "./ws.js";
+import { RegPayload, Ship } from "./ws.js";
 
 type Player = {
     id: string;
@@ -10,22 +10,27 @@ type Player = {
 type Room = {
     id: string;
     players: Player[];
-    games: Map<Player, PlayerGame>;
+    game?: Game;
 };
 
-type PlayerGame = {
+type Game = {
     id: string;
+    playersShips: Map<Player, Ship[]>;
 };
+
+type GameId = string;
+type PlayerId = string;
 
 const users: Player[] = [];
 const rooms: Room[] = [];
+const games: Game[] = [];
 
-function addPlayer(player: RegPayload): Player | null {
+function addPlayer(player: RegPayload): Player | undefined {
     const existingUser: Player | undefined = users.find(
         (user) => user.name === player.name && user.password === player.password
     );
     if (existingUser) {
-        return null;
+        return undefined;
     }
     const user: Player = { id: randomUUID(), name: player.name, password: player.password };
     users.push(user);
@@ -33,7 +38,7 @@ function addPlayer(player: RegPayload): Player | null {
 }
 
 function createRoom(): void {
-    const room: Room = { id: randomUUID(), players: [], games: new Map() };
+    const room: Room = { id: randomUUID(), players: [] };
     rooms.push(room);
 }
 
@@ -56,12 +61,48 @@ function getRoomById(roomId: string): Room | undefined {
     return rooms.find((room) => room.id === roomId);
 }
 
-function createGameInRoomForPlayer(room: Room, player: Player): string {
-    const game: PlayerGame = {
+function createGameInRoom(room: Room): Game {
+    const game: Game = {
         id: randomUUID(),
+        playersShips: new Map(),
     };
-    room.games.set(player, game);
-    return game.id;
+    room.game = game;
+    games.push(game);
+    return game;
+}
+
+function clearGameInRoom(room: Room): void {
+    const game: Game | undefined = room.game;
+    if (game) {
+        const index = games.findIndex((v) => v === game);
+        games.splice(index, 1);
+        room.game = undefined;
+    }
+}
+
+function getGameById(id: string): Game | undefined {
+    return games.find((game) => game.id === id);
+}
+
+function setShips(gameId: string, playerId: string, ships: Ship[]): void {
+    const game: Game | undefined = getGameById(gameId);
+    const player: Player | undefined = getPlayerById(playerId);
+    if (game && player) {
+        game.playersShips.set(player, ships);
+    }
+}
+
+function getShips(gameId: string, playerId: string): Ship[] | undefined {
+    const game: Game | undefined = getGameById(gameId);
+    const player: Player | undefined = getPlayerById(playerId);
+    if (game && player) {
+        return game.playersShips.get(player);
+    }
+    return undefined;
+}
+
+function isGameReadyToStart(game: Game): boolean {
+    return game.playersShips.size === 2;
 }
 
 export {
@@ -69,9 +110,14 @@ export {
     createRoom,
     getRooms,
     joinRoom,
-    createGameInRoomForPlayer,
+    createGameInRoom,
+    clearGameInRoom,
     getRoomById,
     getPlayerById,
+    getGameById,
+    isGameReadyToStart,
+    setShips,
     Player as InternalPlayer,
     Room as InternalRoom,
+    Game as InternalGame,
 };
