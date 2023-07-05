@@ -14,6 +14,7 @@ type Room = {
 
 const users: Player[] = [];
 const rooms: Room[] = [];
+let currentPlayer: Player;
 
 function addPlayer(player: Player): boolean {
     const existingUser: Player | undefined = users.find(
@@ -23,6 +24,7 @@ function addPlayer(player: Player): boolean {
         return false;
     }
     player.id = randomUUID();
+    currentPlayer = player;
     users.push(player);
     return true;
 }
@@ -36,4 +38,23 @@ function getRooms(): Room[] {
     return rooms.slice();
 }
 
-export { addPlayer, createRoom, getRooms, Player as InternalPlayer, Room as InternalRoom };
+function getCurrentPlayer(): Player {
+    return currentPlayer;
+}
+
+function joinRoom(roomId: string): boolean {
+    const room: Room | undefined = rooms.find((room) => room.id === roomId);
+    if (!room) return false;
+    room.players.push(currentPlayer);
+    return true;
+}
+
+export {
+    addPlayer,
+    createRoom,
+    getRooms,
+    getCurrentPlayer,
+    joinRoom,
+    Player as InternalPlayer,
+    Room as InternalRoom,
+};

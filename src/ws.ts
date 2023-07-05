@@ -1,8 +1,15 @@
 import { IncomingMessage } from "http";
 import { WebSocket, WebSocketServer } from "ws";
-import { addPlayer, createRoom, getRooms, InternalPlayer, InternalRoom } from "./state.js";
+import {
+    addPlayer,
+    createRoom,
+    getRooms,
+    joinRoom,
+    InternalPlayer,
+    InternalRoom,
+} from "./state.js";
 
-type MessageType = "reg" | "create_room" | "update_room";
+type MessageType = "reg" | "create_room" | "update_room" | "add_user_to_room";
 type ResponsePayload = Record<string, unknown> | null;
 
 type Message = {
@@ -14,6 +21,10 @@ type Message = {
 type RegPayload = {
     name: string;
     password: string;
+};
+
+type JoinRoomPayload = {
+    indexRoom: string;
 };
 
 type RegResponse = {
@@ -66,6 +77,11 @@ function createWenSocketServer(port: number): WebSocketServer {
                     break;
                 case "create_room":
                     createRoom();
+                    sendRoomsUpdate(ws);
+                    break;
+                case "add_user_to_room":
+                    const joinRoomPayload: JoinRoomPayload = parsedData as JoinRoomPayload;
+                    const isJoinedToRoom: boolean = joinRoom(joinRoomPayload.indexRoom);
                     sendRoomsUpdate(ws);
                     break;
             }
