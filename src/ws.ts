@@ -1,8 +1,9 @@
 import { IncomingMessage } from "http";
 import { WebSocket, WebSocketServer } from "ws";
+import { addPlayer, createRoom, getRooms, InternalPlayer, InternalRoom } from "./state.js";
 
-type MessageType = "reg";
-type ResponsePayload = Record<string, unknown>;
+type MessageType = "reg" | "create_room" | "update_room";
+type ResponsePayload = Record<string, unknown> | null;
 
 type Message = {
     type: MessageType;
@@ -17,10 +18,20 @@ type RegPayload = {
 
 type RegResponse = {
     name: string;
-    index: number;
     error: boolean;
     errorText: string;
 };
+
+type RoomUser = {
+    name: string;
+    index: string;
+};
+type Room = {
+    roomId: string;
+    roomUsers: RoomUser[];
+};
+
+type UpdateRoomsNotification = Room[];
 
 function createWenSocketServer(port: number): WebSocketServer {
     const wss = new WebSocketServer({ port });
@@ -36,39 +47,76 @@ function createWenSocketServer(port: number): WebSocketServer {
         ws.on("message", (data: Buffer | ArrayBuffer | Buffer[], isBinary: boolean) => {
             const str: string = data.toString();
             const message: Message = JSON.parse(str);
-            const parsedData: Record<string, unknown> = JSON.parse(message.data);
+            const parsedData: Record<string, unknown> =
+                message.data && message.data.length ? JSON.parse(message.data) : null;
             switch (message.type) {
                 case "reg":
-                    const regMessage: RegPayload = parsedData as RegPayload;
-                    sendResponse(
+                    const regPayload: RegPayload = parsedData as RegPayload;
+                    const isPlayerAdded: boolean = addPlayer(<InternalPlayer>{
+                        name: regPayload.name,
+                        password: regPayload.password,
+                    });
+                    sendLoginResponse(
                         ws,
-                        message.type,
-                        <RegResponse>{
-                            name: regMessage.name,
-                            index: 0,
-                            error: false,
-                            errorText: "",
-                        },
-                        message.id
+                        message,
+                        regPayload,
+                        !isPlayerAdded ? "Player exists already" : ""
                     );
+                    sendRoomsUpdate(ws);
+                    break;
+                case "create_room":
+                    createRoom();
+                    sendRoomsUpdate(ws);
                     break;
             }
-            message.data = JSON.parse(message.data);
             console.log("received: %s", data);
-            console.log("message", message);
         });
     });
 
     return wss;
 }
 
-function sendResponse(ws: WebSocket, type: MessageType, data: ResponsePayload, id: number): void {
+function sendLoginResponse(
+    ws: WebSocket,
+    message: Message,
+    payload: RegPayload,
+    errorMessage: string
+): void {
+    sendMessage(
+        ws,
+        message.type,
+        <RegResponse>{
+            name: payload.name,
+            error: errorMessage && errorMessage.length > 0,
+            errorText: errorMessage,
+        },
+        message.id
+    );
+}
+
+function sendRoomsUpdate(ws: WebSocket): void {
+    const rooms: InternalRoom[] = getRooms();
+    const notification: UpdateRoomsNotification = rooms.map((room: InternalRoom) => {
+        return <Room>{
+            roomId: room.id,
+            roomUsers: room.players.map(
+                (player: InternalPlayer) => <RoomUser>{ name: player.name, index: player.id }
+            ),
+        };
+    });
+
+    sendMessage(ws, "update_room", notification, 0);
+}
+
+function sendMessage(ws: WebSocket, type: MessageType, data: any, id: number): void {
     const message: Message = {
         type,
-        data: JSON.stringify(data),
+        data: data ? JSON.stringify(data) : "",
         id,
     };
+    console.log(" -> sending message:");
+    console.log(message);
     ws.send(JSON.stringify(message));
 }
 
-export { createWenSocketServer };
+export { createWenSocketServer, Room, RoomUser };
