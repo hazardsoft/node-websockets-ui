@@ -7,9 +7,12 @@ import {
     joinRoom,
     InternalPlayer,
     InternalRoom,
+    createGameInRoomForPlayer,
+    getRoomById,
+    getPlayerById,
 } from "./state.js";
 
-type MessageType = "reg" | "create_room" | "update_room" | "add_user_to_room";
+type MessageType = "reg" | "create_room" | "update_room" | "add_user_to_room" | "create_game";
 type ResponsePayload = Record<string, unknown> | null;
 
 type Message = {
@@ -23,12 +26,18 @@ type RegPayload = {
     password: string;
 };
 
+type CreateGamePayload = {
+    idGame: string;
+    idPlayer: string;
+};
+
 type JoinRoomPayload = {
     indexRoom: string;
 };
 
 type RegResponse = {
     name: string;
+    index: string;
     error: boolean;
     errorText: string;
 };
@@ -43,8 +52,12 @@ type Room = {
 };
 
 type UpdateRoomsNotification = Room[];
+type PlayerId = string;
+type NotificationType = "all" | "self" | "others";
 
 function createWenSocketServer(port: number): WebSocketServer {
+    const connections: Map<WebSocket, PlayerId> = new Map();
+
     const wss = new WebSocketServer({ port });
 
     wss.on("connection", (ws: WebSocket, req: IncomingMessage): void => {
@@ -53,7 +66,10 @@ function createWenSocketServer(port: number): WebSocketServer {
         ws.on("error", (error: Error) => {
             console.error(error);
         });
-        ws.on("close", () => console.log("ws connection closed by client"));
+        ws.on("close", () => {
+            console.log("ws connection closed by client");
+            connections.delete(ws);
+        });
 
         ws.on("message", (data: Buffer | ArrayBuffer | Buffer[], isBinary: boolean) => {
             const str: string = data.toString();
@@ -62,27 +78,47 @@ function createWenSocketServer(port: number): WebSocketServer {
                 message.data && message.data.length ? JSON.parse(message.data) : null;
             switch (message.type) {
                 case "reg":
-                    const regPayload: RegPayload = parsedData as RegPayload;
-                    const isPlayerAdded: boolean = addPlayer(<InternalPlayer>{
-                        name: regPayload.name,
-                        password: regPayload.password,
+                    const { name, password } = parsedData as RegPayload;
+                    const player: InternalPlayer | null = addPlayer(<InternalPlayer>{
+                        name,
+                        password,
                     });
+                    if (player) {
+                        connections.set(ws, player.id);
+                    }
                     sendLoginResponse(
                         ws,
                         message,
-                        regPayload,
-                        !isPlayerAdded ? "Player exists already" : ""
+                        player ?? null,
+                        player ? "" : "Player exists already"
                     );
-                    sendRoomsUpdate(wss, ws, true);
+
+                    sendRoomsUpdate(wss, ws, "self");
                     break;
                 case "create_room":
                     createRoom();
-                    sendRoomsUpdate(wss, ws);
+                    sendRoomsUpdate(wss, ws, "all");
                     break;
                 case "add_user_to_room":
                     const joinRoomPayload: JoinRoomPayload = parsedData as JoinRoomPayload;
-                    const isJoinedToRoom: boolean = joinRoom(joinRoomPayload.indexRoom);
-                    sendRoomsUpdate(wss, ws);
+                    const roomId: string = joinRoomPayload.indexRoom;
+                    const playerId: string | undefined = connections.get(ws);
+                    if (playerId) {
+                        const player: InternalPlayer | undefined = getPlayerById(
+                            playerId
+                        ) as InternalPlayer;
+                        const isJoinedToRoom: boolean = joinRoom(roomId, player);
+                        if (isJoinedToRoom) {
+                            const room = getRoomById(roomId) as InternalRoom;
+                            const gameId: string = createGameInRoomForPlayer(room, player);
+                            sendCreateGame(ws, <CreateGamePayload>{
+                                idGame: gameId,
+                                idPlayer: player.id,
+                            });
+                            sendRoomsUpdate(wss, ws, "others");
+                        }
+                    }
+
                     break;
             }
             console.log("received: %s", data);
@@ -95,14 +131,15 @@ function createWenSocketServer(port: number): WebSocketServer {
 function sendLoginResponse(
     ws: WebSocket,
     message: Message,
-    payload: RegPayload,
+    player: InternalPlayer | null,
     errorMessage: string
 ): void {
     sendMessage(
         ws,
         message.type,
         <RegResponse>{
-            name: payload.name,
+            name: player?.name,
+            index: player?.id,
             error: errorMessage && errorMessage.length > 0,
             errorText: errorMessage,
         },
@@ -110,7 +147,15 @@ function sendLoginResponse(
     );
 }
 
-function sendRoomsUpdate(wss: WebSocketServer, ws: WebSocket, self: boolean = false): void {
+function sendCreateGame(ws: WebSocket, payload: CreateGamePayload): void {
+    sendMessage(ws, "create_game", payload, 0);
+}
+
+function sendRoomsUpdate(
+    wss: WebSocketServer,
+    ws: WebSocket,
+    notificationType: NotificationType
+): void {
     const rooms: InternalRoom[] = getRooms();
     const notification: UpdateRoomsNotification = rooms.map((room: InternalRoom) => {
         return <Room>{
@@ -120,12 +165,22 @@ function sendRoomsUpdate(wss: WebSocketServer, ws: WebSocket, self: boolean = fa
             ),
         };
     });
-    if (self) {
-        sendMessage(ws, "update_room", notification, 0);
-    } else {
-        wss.clients.forEach((client: WebSocket) => {
-            sendMessage(client, "update_room", notification, 0);
-        });
+    switch (notificationType) {
+        case "all":
+            wss.clients.forEach((client: WebSocket) => {
+                sendMessage(client, "update_room", notification, 0);
+            });
+            break;
+        case "self":
+            sendMessage(ws, "update_room", notification, 0);
+            break;
+        case "others":
+            wss.clients.forEach((client: WebSocket) => {
+                if (client !== ws) {
+                    sendMessage(client, "update_room", notification, 0);
+                }
+            });
+            break;
     }
 }
 
@@ -140,4 +195,4 @@ function sendMessage(ws: WebSocket, type: MessageType, data: any, id: number): v
     ws.send(JSON.stringify(message));
 }
 
-export { createWenSocketServer, Room, RoomUser };
+export { createWenSocketServer, Room, RoomUser, RegPayload };
