@@ -73,16 +73,16 @@ function createWenSocketServer(port: number): WebSocketServer {
                         regPayload,
                         !isPlayerAdded ? "Player exists already" : ""
                     );
-                    sendRoomsUpdate(ws);
+                    sendRoomsUpdate(wss, ws, true);
                     break;
                 case "create_room":
                     createRoom();
-                    sendRoomsUpdate(ws);
+                    sendRoomsUpdate(wss, ws);
                     break;
                 case "add_user_to_room":
                     const joinRoomPayload: JoinRoomPayload = parsedData as JoinRoomPayload;
                     const isJoinedToRoom: boolean = joinRoom(joinRoomPayload.indexRoom);
-                    sendRoomsUpdate(ws);
+                    sendRoomsUpdate(wss, ws);
                     break;
             }
             console.log("received: %s", data);
@@ -110,7 +110,7 @@ function sendLoginResponse(
     );
 }
 
-function sendRoomsUpdate(ws: WebSocket): void {
+function sendRoomsUpdate(wss: WebSocketServer, ws: WebSocket, self: boolean = false): void {
     const rooms: InternalRoom[] = getRooms();
     const notification: UpdateRoomsNotification = rooms.map((room: InternalRoom) => {
         return <Room>{
@@ -120,8 +120,13 @@ function sendRoomsUpdate(ws: WebSocket): void {
             ),
         };
     });
-
-    sendMessage(ws, "update_room", notification, 0);
+    if (self) {
+        sendMessage(ws, "update_room", notification, 0);
+    } else {
+        wss.clients.forEach((client: WebSocket) => {
+            sendMessage(client, "update_room", notification, 0);
+        });
+    }
 }
 
 function sendMessage(ws: WebSocket, type: MessageType, data: any, id: number): void {
