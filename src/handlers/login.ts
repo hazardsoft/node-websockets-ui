@@ -1,28 +1,33 @@
-import { LoginPayload, LoginResponsePayload } from "../types.js";
+import { WebSocket } from "ws";
+import { LoginPayload, LoginResponsePayload, PlayerId } from "../types.js";
 import { Player } from "../Player.js";
-import { sendMessage, sendRoomsUpdate } from "../pub.js";
+import { sendRoomsUpdate } from "../pub.js";
 import { addPlayer } from "../state.js";
-import { WebSocket, WebSocketServer } from "ws";
+import { GameServer } from "../server.js";
 
 const errorMessage = "Player exists already";
 
 function loginHandler(
-    wss: WebSocketServer,
-    ws: WebSocket,
+    server: GameServer,
+    connection: WebSocket,
     payload: LoginPayload,
-    newPlayerCallback: (playerId: string) => void
+    registerPlayer: (playerId: PlayerId) => void
 ) {
     const { name, password } = payload;
-    const newPlayer = addPlayer(name, password);
-    if (newPlayer) {
-        newPlayerCallback(newPlayer.id);
+    const player = addPlayer(name, password);
+    if (player) {
+        registerPlayer(player.id);
     }
-    sendLoginResponse(ws, newPlayer);
-    sendRoomsUpdate(wss, ws, "self");
+    sendLoginResponse(server, connection, player);
+    sendRoomsUpdate(server, "self", player?.id);
 }
 
-function sendLoginResponse(ws: WebSocket, player: Player | undefined): void {
-    sendMessage(ws, "reg", <LoginResponsePayload>{
+function sendLoginResponse(
+    server: GameServer,
+    connection: WebSocket,
+    player: Player | undefined
+): void {
+    server.sendMessage(connection, "reg", <LoginResponsePayload>{
         name: player?.name,
         index: player?.id,
         error: !player,

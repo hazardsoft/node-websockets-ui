@@ -1,14 +1,13 @@
-import { WebSocket, WebSocketServer } from "ws";
 import { CreateGamePayload, JoinRoomPayload, PlayerId } from "../types.js";
 import { joinRoom, getPlayerById, getRoomById, createGameInRoom } from "../state.js";
-import { sendMessage, sendRoomsUpdate } from "../pub.js";
+import { sendRoomsUpdate } from "../pub.js";
 import { Room } from "../Room.js";
 import { Game } from "../Game.js";
 import { Player } from "../Player.js";
+import { GameServer } from "../server.js";
 
 function joinRoomHandler(
-    wss: WebSocketServer,
-    ws: WebSocket,
+    server: GameServer,
     payload: JoinRoomPayload,
     getCurrentPlayerId: () => PlayerId
 ) {
@@ -24,13 +23,13 @@ function joinRoomHandler(
             idGame: game.id,
             idPlayer: currentPlayerId,
         };
-        sendCreateGame(ws, payload);
-        sendRoomsUpdate(wss, ws, "others");
+        sendCreateGame(server, currentPlayerId, payload);
+        sendRoomsUpdate(server, "others");
     }
 }
 
-function sendCreateGame(ws: WebSocket, payload: CreateGamePayload): void {
-    sendMessage(ws, "create_game", payload);
+function sendCreateGame(server: GameServer, playerId: PlayerId, payload: CreateGamePayload): void {
+    server.sendMessageToPlayer(playerId, "create_game", payload);
 }
 
 export { joinRoomHandler };

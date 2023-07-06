@@ -16,7 +16,6 @@ type MessageType =
 type Message = {
     type: MessageType;
     data: string;
-    id: number;
 };
 
 type NotificationType = "all" | "self" | "others";
@@ -109,5 +108,5 @@ export {
     TurnPayload,
     AttackPayload,
     AttackResult,
-    AttackResponsePayload
+    AttackResponsePayload,
 };

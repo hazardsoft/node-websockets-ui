@@ -1,9 +1,8 @@
-import { WebSocket } from "ws";
 import { AttackPayload, AttackResponsePayload, PlayerId } from "../types.js";
-import { sendMessage } from "../pub.js";
 import { getGameById } from "../state.js";
+import { GameServer } from "../server.js";
 
-function attackHandler(payload: AttackPayload, getConnection: (playerId: PlayerId) => WebSocket) {
+function attackHandler(server: GameServer, payload: AttackPayload) {
     const game = getGameById(payload.gameId);
     if (game && payload.indexPlayer === game.getTurn()) {
         const attackerId = payload.indexPlayer;
@@ -12,8 +11,7 @@ function attackHandler(payload: AttackPayload, getConnection: (playerId: PlayerI
         const attackResult = game.attackPlayer(opponentId, payload.x, payload.y);
         const playersIds: PlayerId[] = game.getPlayersIds();
         playersIds.forEach((playerId) => {
-            const playerConnection = getConnection(playerId);
-            sendAttackResult(playerConnection, <AttackResponsePayload>{
+            sendAttackResult(server, playerId, <AttackResponsePayload>{
                 position: { x: payload.x, y: payload.y },
                 currentPlayer: attackerId,
                 status: attackResult,
@@ -22,8 +20,12 @@ function attackHandler(payload: AttackPayload, getConnection: (playerId: PlayerI
     }
 }
 
-function sendAttackResult(ws: WebSocket, payload: AttackResponsePayload): void {
-    sendMessage(ws, "attack", payload);
+function sendAttackResult(
+    server: GameServer,
+    playerId: PlayerId,
+    payload: AttackResponsePayload
+): void {
+    server.sendMessageToPlayer(playerId, "attack", payload);
 }
 
 export { attackHandler };
