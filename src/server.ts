@@ -1,6 +1,6 @@
 import { IncomingMessage } from "http";
 import { WebSocket, WebSocketServer } from "ws";
-import { createRoom, getGameById, setShips } from "./state.js";
+import { createRoom, getGameById, setShips, assignController } from "./state.js";
 import { Game } from "./Game.js";
 import {
     LoginPayload,
@@ -9,14 +9,14 @@ import {
     PlayerId,
     AddShipsPayload,
     AttackPayload,
-    TurnPayload,
     MessageType,
     NotificationType,
 } from "./types.js";
 import { loginHandler } from "./handlers/login.js";
 import { joinRoomHandler } from "./handlers/joinRoom.js";
-import { startGameHandler } from "./handlers/startGame.js";
 import { attackHandler } from "./handlers/attack.js";
+import { startGameHandler } from "./handlers/startGame.js";
+import { changeTurnHandler } from "./handlers/changePlayer.js";
 import { sendRoomsUpdate } from "./pub.js";
 
 export class GameServer {
@@ -65,17 +65,12 @@ export class GameServer {
 
                         const game: Game = getGameById(gameId) as Game;
                         if (game.isGameReadyToStart()) {
-                            game.setTurn(indexPlayer);
-
                             const playersIds: PlayerId[] = game.getPlayersIds();
+
                             playersIds.forEach((playerId) => {
                                 startGameHandler(this, game, playerId);
                             });
-
-                            const playerConnection = this.getConnectionByPlayerId(
-                                indexPlayer
-                            ) as WebSocket;
-                            this.sendChangeTurn(playerConnection, { currentPlayer: indexPlayer });
+                            changeTurnHandler(this, game, indexPlayer);
                         }
                         break;
                     case "attack":
@@ -142,9 +137,5 @@ export class GameServer {
 
     public setPlayerId(ws: WebSocket, playerId: PlayerId): void {
         this.connections.set(ws, playerId);
-    }
-
-    private sendChangeTurn(connection: WebSocket, payload: TurnPayload): void {
-        this.sendMessage(connection, "turn", payload);
     }
 }

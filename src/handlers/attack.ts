@@ -1,6 +1,7 @@
 import { AttackPayload, AttackResponsePayload, PlayerId } from "../types.js";
 import { getGameById } from "../state.js";
 import { GameServer } from "../server.js";
+import { changeTurnHandler } from "./changePlayer.js";
 
 function attackHandler(server: GameServer, payload: AttackPayload) {
     const game = getGameById(payload.gameId);
@@ -17,6 +18,12 @@ function attackHandler(server: GameServer, payload: AttackPayload) {
                 status: attackResult,
             });
         });
+
+        if (attackResult === "miss") {
+            changeTurnHandler(server, game, opponentId);
+        } else {
+            changeTurnHandler(server, game, attackerId);
+        }
     }
 }
 
