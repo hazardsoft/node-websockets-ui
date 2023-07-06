@@ -12,7 +12,8 @@ type MessageType =
     | "start_game"
     | "turn"
     | "attack"
-    | "finish";
+    | "finish"
+    | "randomAttack";
 
 type Message = {
     type: MessageType;
@@ -93,6 +94,13 @@ type FinishGamePayload = {
     winPlayer: string;
 };
 
+type RandomAttackPayload = {
+    gameId: string;
+    indexPlayer: string;
+};
+
+type Position = { x: number; y: number };
+
 export {
     PlayerId,
     RoomId,
@@ -115,4 +123,6 @@ export {
     AttackResult,
     AttackResponsePayload,
     FinishGamePayload,
+    RandomAttackPayload,
+    Position,
 };

@@ -1,5 +1,5 @@
 import { ShipWithPositions } from "./Ship.js";
-import { Ship, AttackResult } from "./types.js";
+import { Ship, AttackResult, Position } from "./types.js";
 
 const enum CELL {
     UNKNOWN = 0,
@@ -75,5 +75,44 @@ export class Field {
             result &&= ship.isDestroyed();
         }
         return result;
+    }
+}
+
+export class UnknownField {
+    private cells: CELL[][];
+    private readonly attackToCell: Record<AttackResult, CELL> = {
+        miss: CELL.OCEAN,
+        shot: CELL.SHIP_HIT,
+        killed: CELL.SHIP_HIT,
+        none: CELL.UNKNOWN,
+    };
+
+    constructor() {
+        this.cells = Array.from(Array(FIELD_SIZE), () => Array(FIELD_SIZE).fill(CELL.UNKNOWN));
+    }
+
+    private setCell(row: number, column: number, value: CELL): void {
+        this.cells[column][row] = value;
+    }
+
+    public markCell(x: number, y: number, attackResult: AttackResult): void {
+        const cellValue = this.attackToCell[attackResult];
+        this.setCell(x, y, cellValue);
+    }
+
+    public getRandomUnknownPosition(): Position {
+        const unknowns: Position[] = [];
+
+        for (let i = 0; i < this.cells.length; i++) {
+            const column = this.cells[i];
+            for (let j = 0; j < column.length; j++) {
+                const row = column[j];
+                if (row === CELL.UNKNOWN) {
+                    unknowns.push({ x: j, y: i });
+                }
+            }
+        }
+        const randomIndex = Math.floor(Math.random() * unknowns.length);
+        return unknowns[randomIndex];
     }
 }

@@ -1,9 +1,10 @@
-import { PlayerId } from "./types.js";
+import { PlayerId, Position } from "./types.js";
 import { AttackResult, Ship } from "./types.js";
-import { Field } from "./Field.js";
+import { Field, UnknownField } from "./Field.js";
 
 export class Game {
     private fields: Map<PlayerId, Field> = new Map();
+    private unknownFields: Map<PlayerId, UnknownField> = new Map();
     private turnOfPlayerId: PlayerId = "";
 
     constructor(public id: string) {}
@@ -11,6 +12,7 @@ export class Game {
     public setShipsByPlayerId(playerId: PlayerId, ships: Ship[]): void {
         if (!this.fields.has(playerId)) {
             this.fields.set(playerId, new Field());
+            this.unknownFields.set(playerId, new UnknownField());
         }
         const field: Field | undefined = this.fields.get(playerId);
         if (field) {
@@ -61,6 +63,21 @@ export class Game {
             return field.attack(x, y);
         }
         return undefined;
+    }
+
+    public markUnknownField(
+        playerId: PlayerId,
+        x: number,
+        y: number,
+        attackResult: AttackResult
+    ): void {
+        const unknownField = this.unknownFields.get(playerId);
+        unknownField?.markCell(x, y, attackResult);
+    }
+
+    public getRandomPositionToAttack(playerId: PlayerId): Position {
+        const unknownField = this.unknownFields.get(playerId);
+        return unknownField?.getRandomUnknownPosition() as Position;
     }
 
     public isGameFinished(): boolean {

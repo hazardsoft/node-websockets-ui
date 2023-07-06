@@ -10,12 +10,14 @@ import {
     AttackPayload,
     MessageType,
     NotificationType,
+    RandomAttackPayload,
 } from "./types.js";
 import { loginHandler } from "./handlers/login.js";
 import { joinRoomHandler } from "./handlers/joinRoom.js";
 import { attackHandler } from "./handlers/attack.js";
 import { addShipsHandler } from "./handlers/addShips.js";
 import { sendRoomsUpdateHandler } from "./handlers/updateRooms.js";
+import { randomAttackHandler } from "./handlers/randomAttack.js";
 
 export class GameServer {
     private connections: Map<WebSocket, PlayerId> = new Map();
@@ -63,6 +65,9 @@ export class GameServer {
                         break;
                     case "attack":
                         attackHandler(this, <AttackPayload>parsedData);
+                        break;
+                    case "randomAttack":
+                        randomAttackHandler(this, <RandomAttackPayload>parsedData);
                         break;
                 }
             });
