@@ -98,8 +98,6 @@ export class GameServer {
             type: messageType,
             data: payload ? JSON.stringify(payload) : "",
         };
-        console.log(" -> sending message:");
-        console.log(message);
         connection.send(JSON.stringify(message));
     }
 

@@ -1,3 +1,4 @@
+import { ShipWithPositions } from "./Ship.js";
 import { Ship, AttackResult } from "./types.js";
 
 const enum CELL {
@@ -6,14 +7,15 @@ const enum CELL {
     SHIP = 2,
     SHIP_HIT = 3,
 }
-
+type CellId = string;
 const FIELD_SIZE = 10;
 
 export class Field {
     private cells: CELL[][];
     private ships: Ship[] = [];
+    private shipsWithPositions: Map<CellId, ShipWithPositions> = new Map();
     constructor() {
-        this.cells = Array.from(Array(FIELD_SIZE), () => Array(FIELD_SIZE).fill(0));
+        this.cells = Array.from(Array(FIELD_SIZE), () => Array(FIELD_SIZE).fill(CELL.UNKNOWN));
     }
 
     private setCell(row: number, column: number, value: CELL): void {
@@ -26,21 +28,24 @@ export class Field {
 
     private addShip(ship: Ship): void {
         this.ships.push(ship);
+        const shipWithPositions = new ShipWithPositions(ship);
+
         const { x: startX, y: startY } = ship.position;
         for (let i = 0; i < ship.length; i++) {
-            if (ship.direction) {
-                this.setCell(startX, startY + i, CELL.SHIP);
-            } else {
-                this.setCell(startX + i, startY, CELL.SHIP);
-            }
+            const x = ship.direction ? startX : startX + i;
+            const y = ship.direction ? startY + i : startY;
+            this.setCell(x, y, CELL.SHIP);
+            this.shipsWithPositions.set(this.getCellId(x, y), shipWithPositions);
         }
+    }
+
+    private getCellId(x: number, y: number): string {
+        return `${x}${y}`;
     }
 
     public setShips(ships: Ship[]): void {
         ships.forEach((ship) => this.addShip(ship));
-
         console.table(this.cells);
-        console.log();
     }
 
     public getShips(): Ship[] {
@@ -55,7 +60,9 @@ export class Field {
                 return "miss";
             case CELL.SHIP:
                 this.setCell(x, y, CELL.SHIP_HIT);
-                return "shot";
+                const ship = this.shipsWithPositions.get(this.getCellId(x, y));
+                ship?.hit(x, y);
+                return ship?.isDestroyed() ? "killed" : "shot";
             default:
                 return "miss";
         }
