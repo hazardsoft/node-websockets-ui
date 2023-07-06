@@ -62,4 +62,13 @@ export class Game {
         }
         return undefined;
     }
+
+    public isGameFinished(): boolean {
+        for (const field of this.fields.values()) {
+            if (field.isAllShipsDestroyed()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

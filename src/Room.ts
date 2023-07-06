@@ -16,8 +16,16 @@ export class Room {
         return this.players.slice();
     }
 
+    public removePlayers(): void {
+        this.players.length = 0;
+    }
+
     public assignGame(game: Game): void {
         this.game = game;
+    }
+
+    public removeGame(): void {
+        this.game = null;
     }
 
     public hasGame(): boolean {
@@ -26,9 +34,5 @@ export class Room {
 
     public getGame(): Game | null {
         return this.game;
-    }
-
-    public clearGame(): void {
-        this.game = null;
     }
 }

@@ -1,6 +1,6 @@
 import { IncomingMessage } from "http";
 import { WebSocket, WebSocketServer } from "ws";
-import { createRoom, getGameById, setShips, assignController } from "./state.js";
+import { createRoom, getGameById, setShips } from "./state.js";
 import { Game } from "./Game.js";
 import {
     LoginPayload,
@@ -55,9 +55,10 @@ export class GameServer {
                         sendRoomsUpdate(this, "all");
                         break;
                     case "add_user_to_room":
-                        joinRoomHandler(this, <JoinRoomPayload>parsedData, (): PlayerId => {
-                            return this.getPlayerId(ws) as PlayerId;
-                        });
+                        const playerId = this.getPlayerId(ws);
+                        if (playerId) {
+                            joinRoomHandler(this, playerId, <JoinRoomPayload>parsedData);
+                        }
                         break;
                     case "add_ships":
                         const { gameId, indexPlayer, ships } = <AddShipsPayload>parsedData;

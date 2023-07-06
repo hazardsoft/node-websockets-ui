@@ -2,6 +2,7 @@ import { AttackPayload, AttackResponsePayload, PlayerId } from "../types.js";
 import { getGameById } from "../state.js";
 import { GameServer } from "../server.js";
 import { changeTurnHandler } from "./changePlayer.js";
+import { finishGameHandler } from "./finishGame.js";
 
 function attackHandler(server: GameServer, payload: AttackPayload) {
     const game = getGameById(payload.gameId);
@@ -19,10 +20,20 @@ function attackHandler(server: GameServer, payload: AttackPayload) {
             });
         });
 
-        if (attackResult === "miss") {
-            changeTurnHandler(server, game, opponentId);
-        } else {
-            changeTurnHandler(server, game, attackerId);
+        switch (attackResult) {
+            case "miss":
+                changeTurnHandler(server, game, opponentId);
+                break;
+            case "shot":
+                changeTurnHandler(server, game, attackerId);
+                break;
+            case "killed":
+                if (game.isGameFinished()) {
+                    finishGameHandler(server, game, attackerId);
+                } else {
+                    changeTurnHandler(server, game, attackerId);
+                }
+                break;
         }
     }
 }

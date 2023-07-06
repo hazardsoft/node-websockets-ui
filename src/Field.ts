@@ -12,8 +12,8 @@ const FIELD_SIZE = 10;
 
 export class Field {
     private cells: CELL[][];
-    private ships: Ship[] = [];
-    private shipsWithPositions: Map<CellId, ShipWithPositions> = new Map();
+    private origShips: Ship[] = [];
+    private ships: Map<CellId, ShipWithPositions> = new Map();
     constructor() {
         this.cells = Array.from(Array(FIELD_SIZE), () => Array(FIELD_SIZE).fill(CELL.UNKNOWN));
     }
@@ -27,7 +27,7 @@ export class Field {
     }
 
     private addShip(ship: Ship): void {
-        this.ships.push(ship);
+        this.origShips.push(ship);
         const shipWithPositions = new ShipWithPositions(ship);
 
         const { x: startX, y: startY } = ship.position;
@@ -35,7 +35,7 @@ export class Field {
             const x = ship.direction ? startX : startX + i;
             const y = ship.direction ? startY + i : startY;
             this.setCell(x, y, CELL.SHIP);
-            this.shipsWithPositions.set(this.getCellId(x, y), shipWithPositions);
+            this.ships.set(this.getCellId(x, y), shipWithPositions);
         }
     }
 
@@ -44,12 +44,13 @@ export class Field {
     }
 
     public setShips(ships: Ship[]): void {
+        this.origShips.length = 0;
         ships.forEach((ship) => this.addShip(ship));
         console.table(this.cells);
     }
 
     public getShips(): Ship[] {
-        return this.ships.slice();
+        return this.origShips.slice();
     }
 
     public attack(x: number, y: number): AttackResult {
@@ -60,11 +61,19 @@ export class Field {
                 return "miss";
             case CELL.SHIP:
                 this.setCell(x, y, CELL.SHIP_HIT);
-                const ship = this.shipsWithPositions.get(this.getCellId(x, y));
-                ship?.hit(x, y);
-                return ship?.isDestroyed() ? "killed" : "shot";
+                const ship = this.ships.get(this.getCellId(x, y)) as ShipWithPositions;
+                ship.hit(x, y);
+                return ship.isDestroyed() ? "killed" : "shot";
             default:
                 return "miss";
         }
+    }
+
+    public isAllShipsDestroyed(): boolean {
+        let result: boolean = true;
+        for (const ship of this.ships.values()) {
+            result &&= ship.isDestroyed();
+        }
+        return result;
     }
 }

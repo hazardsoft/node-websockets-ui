@@ -11,7 +11,8 @@ type MessageType =
     | "add_ships"
     | "start_game"
     | "turn"
-    | "attack";
+    | "attack"
+    | "finish";
 
 type Message = {
     type: MessageType;
@@ -88,6 +89,10 @@ type AttackResponsePayload = {
 
 type AttackResult = "miss" | "killed" | "shot";
 
+type FinishGamePayload = {
+    winPlayer: string;
+};
+
 export {
     PlayerId,
     RoomId,
@@ -109,4 +114,5 @@ export {
     AttackPayload,
     AttackResult,
     AttackResponsePayload,
+    FinishGamePayload,
 };

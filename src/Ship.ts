@@ -8,12 +8,15 @@ type ShipPart = {
 
 export class ShipWithPositions {
     private parts: ShipPart[] = [];
+    private destroyed: boolean = false;
 
     constructor(ship: Ship) {
-        for (let i = 0; i < ship.length; i++) {
+        const { x, y } = ship.position;
+        const { length } = ship;
+        for (let i = 0; i < length; i++) {
             this.parts.push({
-                x: ship.direction ? ship.position.x : ship.position.x + i,
-                y: ship.direction ? ship.position.x + i : ship.position.y,
+                x: ship.direction ? x : x + i,
+                y: ship.direction ? y + i : y,
                 hit: false,
             });
         }
@@ -25,13 +28,14 @@ export class ShipWithPositions {
     }
 
     public isDestroyed(): boolean {
-        return this.parts.every((part) => part.hit);
+        if (this.destroyed) return true;
+        return (this.destroyed = this.parts.every((part) => part.hit));
     }
 
     public toString(): string {
-        return this.parts.reduce((acc, part) => {
-            acc.length > 0 ? (acc += ";") : "";
-            return (acc += `${part.x}/${part.y}:${part.hit}`);
-        }, "");
+        const formattedParts: string[] = this.parts.map(
+            (part) => `${part.x}/${part.y}:${part.hit}`
+        );
+        return formattedParts.join(";") + `-destroyed:${this.destroyed}`;
     }
 }

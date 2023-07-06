@@ -44,11 +44,22 @@ function getRoomById(roomId: string): Room | undefined {
     return rooms.find((room) => room.id === roomId);
 }
 
-function createGameInRoom(room: Room): Game {
+function createGame(): Game {
     const game: Game = new Game(randomUUID());
-    room.assignGame(game);
     games.push(game);
     return game;
+}
+
+function emptyRoom(game: Game): void {
+    rooms.forEach((room) => {
+        if (room.hasGame() && room.getGame() === game) {
+            room.removeGame();
+            room.removePlayers();
+            return;
+        }
+    });
+    const gameIndex = games.indexOf(game);
+    games.splice(gameIndex, 1);
 }
 
 function getGameById(id: string): Game | undefined {
@@ -67,9 +78,10 @@ export {
     createRoom,
     getRooms,
     joinRoom,
-    createGameInRoom,
     getRoomById,
     getPlayerById,
     getGameById,
     setShips,
+    createGame,
+    emptyRoom,
 };
