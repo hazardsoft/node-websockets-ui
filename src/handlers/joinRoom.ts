@@ -26,6 +26,8 @@ function joinRoomHandler(server: GameServer, playerId: PlayerId, payload: JoinRo
         };
         sendCreateGame(server, playerId, payload);
         sendRoomsUpdate(server, "others");
+    } else {
+        sendRoomsUpdate(server, "self", playerId);
     }
 }
 

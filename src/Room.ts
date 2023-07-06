@@ -35,4 +35,8 @@ export class Room {
     public getGame(): Game | null {
         return this.game;
     }
+
+    public isFull(): boolean {
+        return this.players.length == 2;
+    }
 }

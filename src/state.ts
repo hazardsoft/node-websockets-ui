@@ -35,7 +35,7 @@ function getPlayerById(id: string): Player | undefined {
 
 function joinRoom(roomId: string, player: Player): boolean {
     const room: Room | undefined = rooms.find((room) => room.id === roomId);
-    if (!room) return false;
+    if (!room || room.isFull()) return false;
     room.addPlayer(player);
     return true;
 }
