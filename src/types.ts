@@ -87,7 +87,7 @@ type AttackResponsePayload = {
     status: AttackResult;
 };
 
-type AttackResult = "miss" | "killed" | "shot";
+type AttackResult = "miss" | "killed" | "shot" | "none";
 
 type FinishGamePayload = {
     winPlayer: string;

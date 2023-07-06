@@ -15,7 +15,7 @@ import { loginHandler } from "./handlers/login.js";
 import { joinRoomHandler } from "./handlers/joinRoom.js";
 import { attackHandler } from "./handlers/attack.js";
 import { addShipsHandler } from "./handlers/addShips.js";
-import { sendRoomsUpdate } from "./pub.js";
+import { sendRoomsUpdateHandler } from "./handlers/updateRooms.js";
 
 export class GameServer {
     private connections: Map<WebSocket, PlayerId> = new Map();
@@ -50,7 +50,7 @@ export class GameServer {
                         break;
                     case "create_room":
                         createRoom();
-                        sendRoomsUpdate(this, "all");
+                        sendRoomsUpdateHandler(this, "all");
                         break;
                     case "add_user_to_room":
                         const playerId = this.getPlayerId(ws);

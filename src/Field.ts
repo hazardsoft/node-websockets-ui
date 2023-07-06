@@ -65,7 +65,7 @@ export class Field {
                 ship.hit(x, y);
                 return ship.isDestroyed() ? "killed" : "shot";
             default:
-                return "miss";
+                return "none";
         }
     }
 

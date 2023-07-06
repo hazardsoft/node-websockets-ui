@@ -1,10 +1,12 @@
-import { CreateGamePayload, JoinRoomPayload, PlayerId } from "../types.js";
+import { CreateGamePayload, JoinRoomPayload, MessageType, PlayerId } from "../types.js";
 import { joinRoom, getPlayerById, getRoomById, createGame } from "../state.js";
-import { sendRoomsUpdate } from "../pub.js";
+import { sendRoomsUpdateHandler } from "./updateRooms.js";
 import { Room } from "../Room.js";
 import { Game } from "../Game.js";
 import { Player } from "../Player.js";
 import { GameServer } from "../server.js";
+
+const commandName: MessageType = "create_game";
 
 function joinRoomHandler(server: GameServer, playerId: PlayerId, payload: JoinRoomPayload) {
     const roomId = payload.indexRoom;
@@ -20,19 +22,14 @@ function joinRoomHandler(server: GameServer, playerId: PlayerId, payload: JoinRo
             game = createGame();
             room.assignGame(game);
         }
-        const payload: CreateGamePayload = {
+        server.sendMessageToPlayer(playerId, commandName, <CreateGamePayload>{
             idGame: game.id,
             idPlayer: playerId,
-        };
-        sendCreateGame(server, playerId, payload);
-        sendRoomsUpdate(server, "others");
+        });
+        sendRoomsUpdateHandler(server, "others");
     } else {
-        sendRoomsUpdate(server, "self", playerId);
+        sendRoomsUpdateHandler(server, "self", playerId);
     }
-}
-
-function sendCreateGame(server: GameServer, playerId: PlayerId, payload: CreateGamePayload): void {
-    server.sendMessageToPlayer(playerId, "create_game", payload);
 }
 
 export { joinRoomHandler };

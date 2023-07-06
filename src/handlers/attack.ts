@@ -1,8 +1,10 @@
-import { AttackPayload, AttackResponsePayload, PlayerId } from "../types.js";
+import { AttackPayload, AttackResponsePayload, MessageType, PlayerId } from "../types.js";
 import { getGameById } from "../state.js";
 import { GameServer } from "../server.js";
 import { changeTurnHandler } from "./changeTurn.js";
 import { finishGameHandler } from "./finishGame.js";
+
+const commandName: MessageType = "attack";
 
 function attackHandler(server: GameServer, payload: AttackPayload) {
     const game = getGameById(payload.gameId);
@@ -11,39 +13,33 @@ function attackHandler(server: GameServer, payload: AttackPayload) {
         const opponentId = game.getOpponentId(attackerId) as PlayerId;
 
         const attackResult = game.attackPlayer(opponentId, payload.x, payload.y);
-        const playersIds: PlayerId[] = game.getPlayersIds();
-        playersIds.forEach((playerId) => {
-            sendAttackResult(server, playerId, <AttackResponsePayload>{
-                position: { x: payload.x, y: payload.y },
-                currentPlayer: attackerId,
-                status: attackResult,
+        if (attackResult !== "none") {
+            const playersIds: PlayerId[] = game.getPlayersIds();
+            playersIds.forEach((playerId) => {
+                server.sendMessageToPlayer(playerId, commandName, <AttackResponsePayload>{
+                    position: { x: payload.x, y: payload.y },
+                    currentPlayer: attackerId,
+                    status: attackResult,
+                });
             });
-        });
 
-        switch (attackResult) {
-            case "miss":
-                changeTurnHandler(server, game, opponentId);
-                break;
-            case "shot":
-                changeTurnHandler(server, game, attackerId);
-                break;
-            case "killed":
-                if (game.isGameFinished()) {
-                    finishGameHandler(server, game, attackerId);
-                } else {
+            switch (attackResult) {
+                case "miss":
+                    changeTurnHandler(server, game, opponentId);
+                    break;
+                case "shot":
                     changeTurnHandler(server, game, attackerId);
-                }
-                break;
+                    break;
+                case "killed":
+                    if (game.isGameFinished()) {
+                        finishGameHandler(server, game, attackerId);
+                    } else {
+                        changeTurnHandler(server, game, attackerId);
+                    }
+                    break;
+            }
         }
     }
-}
-
-function sendAttackResult(
-    server: GameServer,
-    playerId: PlayerId,
-    payload: AttackResponsePayload
-): void {
-    server.sendMessageToPlayer(playerId, "attack", payload);
 }
 
 export { attackHandler };
