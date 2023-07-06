@@ -1,7 +1,6 @@
 import { IncomingMessage } from "http";
 import { WebSocket, WebSocketServer } from "ws";
-import { createRoom, getGameById, setShips } from "./state.js";
-import { Game } from "./Game.js";
+import { createRoom } from "./state.js";
 import {
     LoginPayload,
     Message,
@@ -15,8 +14,7 @@ import {
 import { loginHandler } from "./handlers/login.js";
 import { joinRoomHandler } from "./handlers/joinRoom.js";
 import { attackHandler } from "./handlers/attack.js";
-import { startGameHandler } from "./handlers/startGame.js";
-import { changeTurnHandler } from "./handlers/changePlayer.js";
+import { addShipsHandler } from "./handlers/addShips.js";
 import { sendRoomsUpdate } from "./pub.js";
 
 export class GameServer {
@@ -61,18 +59,7 @@ export class GameServer {
                         }
                         break;
                     case "add_ships":
-                        const { gameId, indexPlayer, ships } = <AddShipsPayload>parsedData;
-                        setShips(gameId, indexPlayer, ships);
-
-                        const game: Game = getGameById(gameId) as Game;
-                        if (game.isGameReadyToStart()) {
-                            const playersIds: PlayerId[] = game.getPlayersIds();
-
-                            playersIds.forEach((playerId) => {
-                                startGameHandler(this, game, playerId);
-                            });
-                            changeTurnHandler(this, game, indexPlayer);
-                        }
+                        addShipsHandler(this, <AddShipsPayload>parsedData);
                         break;
                     case "attack":
                         attackHandler(this, <AttackPayload>parsedData);

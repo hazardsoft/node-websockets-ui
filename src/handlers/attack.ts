@@ -1,7 +1,7 @@
 import { AttackPayload, AttackResponsePayload, PlayerId } from "../types.js";
 import { getGameById } from "../state.js";
 import { GameServer } from "../server.js";
-import { changeTurnHandler } from "./changePlayer.js";
+import { changeTurnHandler } from "./changeTurn.js";
 import { finishGameHandler } from "./finishGame.js";
 
 function attackHandler(server: GameServer, payload: AttackPayload) {
