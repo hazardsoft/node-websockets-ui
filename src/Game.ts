@@ -1,5 +1,5 @@
-import { PlayerId, Position } from "./types.js";
-import { AttackResult, Ship } from "./types.js";
+import { AttackResult, PlayerId, Position } from "./types.js";
+import { AttackResultType, Ship } from "./types.js";
 import { Field, OpponentField } from "./Field.js";
 
 type PlayerFields = {
@@ -63,26 +63,25 @@ export class Game {
     public attackPlayer(playerId: PlayerId, x: number, y: number): AttackResult | undefined {
         if (this.fields.has(playerId)) {
             const field: PlayerFields = this.fields.get(playerId) as PlayerFields;
-            return field.player.attack(x, y);
+            const attackResultType: AttackResultType = field.player.attack(x, y);
+            return { x, y, type: attackResultType };
         }
         return undefined;
     }
 
-    public setAttackResultOnOpponentField(
-        playerId: PlayerId,
-        x: number,
-        y: number,
-        attackResult: AttackResult
-    ): void {
+    public setAttackResultOnOpponentField(playerId: PlayerId, { x, y, type }: AttackResult): void {
         const fields: PlayerFields | undefined = this.fields.get(playerId);
-        if (fields) {
-            fields.opponent.markCell(x, y, attackResult);
-        }
+        fields?.opponent.markCell(x, y, type);
     }
 
     public getRandomPositionToAttack(playerId: PlayerId): Position {
         const fields: PlayerFields | undefined = this.fields.get(playerId) as PlayerFields;
         return fields.opponent.getRandomPositionToAttack();
+    }
+
+    public getPositionsAroundShip(playerId: PlayerId, x: number, y: number): Position[] {
+        const fields: PlayerFields = this.fields.get(playerId) as PlayerFields;
+        return fields.player.getPositionsAroundShip(x, y);
     }
 
     public isGameFinished(): boolean {

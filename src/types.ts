@@ -85,10 +85,15 @@ type AttackPayload = {
 type AttackResponsePayload = {
     position: { x: number; y: number };
     currentPlayer: string;
-    status: AttackResult;
+    status: AttackResultType;
 };
 
-type AttackResult = "miss" | "killed" | "shot" | "none";
+type AttackResult = {
+    x: number;
+    y: number;
+    type: AttackResultType;
+};
+type AttackResultType = "miss" | "killed" | "shot" | "none";
 
 type FinishGamePayload = {
     winPlayer: string;
@@ -120,9 +125,10 @@ export {
     AddShipsPayload,
     TurnPayload,
     AttackPayload,
-    AttackResult,
+    AttackResultType,
     AttackResponsePayload,
     FinishGamePayload,
     RandomAttackPayload,
     Position,
+    AttackResult,
 };

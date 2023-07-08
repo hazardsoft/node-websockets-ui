@@ -38,7 +38,7 @@ export class GameServer {
             });
 
             ws.on("message", (data: Buffer | ArrayBuffer | Buffer[], isBinary: boolean) => {
-                console.log("received: %s", data);
+                console.log("-> inbound message %s", data);
 
                 const str: string = data.toString();
                 const message: Message = JSON.parse(str);
@@ -86,6 +86,7 @@ export class GameServer {
             type: messageType,
             data: payload ? JSON.stringify(payload) : "",
         };
+        console.log(`outbound message -> `, message);
         connection.send(JSON.stringify(message));
     }
 

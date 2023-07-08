@@ -1,5 +1,5 @@
 import { ShipWithPositions } from "./Ship.js";
-import { Ship, AttackResult, Position } from "./types.js";
+import { Ship, AttackResultType, Position, AttackResult } from "./types.js";
 
 const enum CELL {
     UNKNOWN = 0,
@@ -53,7 +53,7 @@ export class Field {
         return this.origShips.slice();
     }
 
-    public attack(x: number, y: number): AttackResult {
+    public attack(x: number, y: number): AttackResultType {
         const cell = this.getCell(x, y);
         switch (cell) {
             case CELL.UNKNOWN:
@@ -69,6 +69,16 @@ export class Field {
         }
     }
 
+    public getPositionsAroundShip(x: number, y: number): Position[] {
+        const ship = this.ships.get(this.getCellId(x, y)) as ShipWithPositions;
+        let nearByPositions: Position[] = ship.getNearByPositions();
+        nearByPositions = nearByPositions.filter((position) => {
+            const { x, y } = position;
+            return x >= 0 && x < FIELD_SIZE && y >= 0 && y < FIELD_SIZE;
+        });
+        return nearByPositions;
+    }
+
     public isAllShipsDestroyed(): boolean {
         let result: boolean = true;
         for (const ship of this.ships.values()) {
@@ -80,7 +90,7 @@ export class Field {
 
 export class OpponentField {
     private cells: CELL[][];
-    private readonly attackToCell: Record<AttackResult, CELL> = {
+    private readonly attackToCell: Record<AttackResultType, CELL> = {
         miss: CELL.OCEAN,
         shot: CELL.SHIP_HIT,
         killed: CELL.SHIP_HIT,
@@ -95,7 +105,7 @@ export class OpponentField {
         this.cells[column][row] = value;
     }
 
-    public markCell(x: number, y: number, attackResult: AttackResult): void {
+    public markCell(x: number, y: number, attackResult: AttackResultType): void {
         const cellValue = this.attackToCell[attackResult];
         this.setCell(x, y, cellValue);
     }
