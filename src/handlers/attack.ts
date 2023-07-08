@@ -11,6 +11,7 @@ import { GameServer } from "../server.js";
 import { Game } from "../Game.js";
 import { changeTurnHandler } from "./changeTurn.js";
 import { finishGameHandler } from "./finishGame.js";
+import { CELL } from "../Field.js";
 
 const commandName: MessageType = "attack";
 
@@ -39,10 +40,17 @@ function handleAttackResults(
     const attackResultsToNotifyAbout: AttackResult[] = [attackResult];
 
     if (attackResult.type === "killed") {
-        const positionsAroundDestroyedShip: Position[] = game.getPositionsAroundShip(
+        // if ship is destroyed need to reveal nearby positions of it
+        let positionsAroundDestroyedShip: Position[] = game.getPositionsAroundShip(
             opponentId,
             attackResult.x,
             attackResult.y
+        );
+        // do not include cells which were revealed previously
+        positionsAroundDestroyedShip = game.filterPositionsOnOpponentField(
+            attackerId,
+            positionsAroundDestroyedShip,
+            CELL.UNKNOWN
         );
         attackResultsToNotifyAbout.push(
             ...positionsAroundDestroyedShip.map((position) => {

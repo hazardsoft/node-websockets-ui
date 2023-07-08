@@ -1,7 +1,7 @@
 import { ShipWithPositions } from "./Ship.js";
 import { Ship, AttackResultType, Position, AttackResult } from "./types.js";
 
-const enum CELL {
+export const enum CELL {
     UNKNOWN = 0,
     OCEAN = 1,
     SHIP = 2,
@@ -105,9 +105,19 @@ export class OpponentField {
         this.cells[column][row] = value;
     }
 
+    private getCell(row: number, column: number): CELL {
+        return this.cells[column][row];
+    }
+
     public markCell(x: number, y: number, attackResult: AttackResultType): void {
         const cellValue = this.attackToCell[attackResult];
         this.setCell(x, y, cellValue);
+    }
+
+    public filterPositions(positions: Position[], filterBy: CELL): Position[] {
+        return positions.filter((position) => {
+            return this.getCell(position.x, position.y) === filterBy;
+        });
     }
 
     public getRandomPositionToAttack(): Position {

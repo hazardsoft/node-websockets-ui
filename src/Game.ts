@@ -1,6 +1,6 @@
 import { AttackResult, PlayerId, Position } from "./types.js";
 import { AttackResultType, Ship } from "./types.js";
-import { Field, OpponentField } from "./Field.js";
+import { Field, OpponentField, CELL } from "./Field.js";
 
 type PlayerFields = {
     player: Field;
@@ -82,6 +82,15 @@ export class Game {
     public getPositionsAroundShip(playerId: PlayerId, x: number, y: number): Position[] {
         const fields: PlayerFields = this.fields.get(playerId) as PlayerFields;
         return fields.player.getPositionsAroundShip(x, y);
+    }
+
+    public filterPositionsOnOpponentField(
+        playerId: PlayerId,
+        positions: Position[],
+        filterBy: CELL
+    ): Position[] {
+        const fields: PlayerFields = this.fields.get(playerId) as PlayerFields;
+        return fields.opponent.filterPositions(positions, filterBy);
     }
 
     public isGameFinished(): boolean {
