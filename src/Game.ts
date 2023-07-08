@@ -1,29 +1,32 @@
 import { PlayerId, Position } from "./types.js";
 import { AttackResult, Ship } from "./types.js";
-import { Field, UnknownField } from "./Field.js";
+import { Field, OpponentField } from "./Field.js";
+
+type PlayerFields = {
+    player: Field;
+    opponent: OpponentField;
+};
 
 export class Game {
-    private fields: Map<PlayerId, Field> = new Map();
-    private unknownFields: Map<PlayerId, UnknownField> = new Map();
+    private fields: Map<PlayerId, PlayerFields> = new Map();
     private turnOfPlayerId: PlayerId = "";
 
     constructor(public id: string) {}
 
     public setShipsByPlayerId(playerId: PlayerId, ships: Ship[]): void {
         if (!this.fields.has(playerId)) {
-            this.fields.set(playerId, new Field());
-            this.unknownFields.set(playerId, new UnknownField());
+            this.fields.set(playerId, { player: new Field(), opponent: new OpponentField() });
         }
-        const field: Field | undefined = this.fields.get(playerId);
-        if (field) {
-            field.setShips(ships);
+        const fields: PlayerFields | undefined = this.fields.get(playerId);
+        if (fields) {
+            fields.player.setShips(ships);
         }
     }
 
     public getShipsByPlayerId(playerId: PlayerId): Ship[] | undefined {
-        const field: Field | undefined = this.fields.get(playerId);
-        if (field) {
-            return field.getShips();
+        const fields: PlayerFields | undefined = this.fields.get(playerId);
+        if (fields) {
+            return fields.player.getShips();
         }
         return undefined;
     }
@@ -59,30 +62,32 @@ export class Game {
 
     public attackPlayer(playerId: PlayerId, x: number, y: number): AttackResult | undefined {
         if (this.fields.has(playerId)) {
-            const field = this.fields.get(playerId) as Field;
-            return field.attack(x, y);
+            const field: PlayerFields = this.fields.get(playerId) as PlayerFields;
+            return field.player.attack(x, y);
         }
         return undefined;
     }
 
-    public markUnknownField(
+    public setAttackResultOnOpponentField(
         playerId: PlayerId,
         x: number,
         y: number,
         attackResult: AttackResult
     ): void {
-        const unknownField = this.unknownFields.get(playerId);
-        unknownField?.markCell(x, y, attackResult);
+        const fields: PlayerFields | undefined = this.fields.get(playerId);
+        if (fields) {
+            fields.opponent.markCell(x, y, attackResult);
+        }
     }
 
     public getRandomPositionToAttack(playerId: PlayerId): Position {
-        const unknownField = this.unknownFields.get(playerId);
-        return unknownField?.getRandomUnknownPosition() as Position;
+        const fields: PlayerFields | undefined = this.fields.get(playerId) as PlayerFields;
+        return fields.opponent.getRandomPositionToAttack();
     }
 
     public isGameFinished(): boolean {
-        for (const field of this.fields.values()) {
-            if (field.isAllShipsDestroyed()) {
+        for (const fields of this.fields.values()) {
+            if (fields.player.isAllShipsDestroyed()) {
                 return true;
             }
         }

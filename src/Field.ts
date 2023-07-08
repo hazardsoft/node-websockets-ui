@@ -78,7 +78,7 @@ export class Field {
     }
 }
 
-export class UnknownField {
+export class OpponentField {
     private cells: CELL[][];
     private readonly attackToCell: Record<AttackResult, CELL> = {
         miss: CELL.OCEAN,
@@ -100,7 +100,7 @@ export class UnknownField {
         this.setCell(x, y, cellValue);
     }
 
-    public getRandomUnknownPosition(): Position {
+    public getRandomPositionToAttack(): Position {
         const unknowns: Position[] = [];
 
         for (let i = 0; i < this.cells.length; i++) {

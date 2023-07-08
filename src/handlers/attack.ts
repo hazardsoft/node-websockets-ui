@@ -14,7 +14,7 @@ function attackHandler(server: GameServer, payload: AttackPayload) {
 
         const attackResult = game.attackPlayer(opponentId, payload.x, payload.y);
         if (attackResult && attackResult !== "none") {
-            game.markUnknownField(attackerId, payload.x, payload.y, attackResult);
+            game.setAttackResultOnOpponentField(attackerId, payload.x, payload.y, attackResult);
 
             const playersIds: PlayerId[] = game.getPlayersIds();
             playersIds.forEach((playerId) => {
