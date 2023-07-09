@@ -1,6 +1,6 @@
 import { IncomingMessage } from "http";
 import { WebSocket, WebSocketServer, AddressInfo } from "ws";
-import { createRoom } from "./state.js";
+import { createRoom, removePlayer } from "./state.js";
 import {
     LoginPayload,
     Message,
@@ -26,7 +26,7 @@ export class GameServer {
     constructor(port: number) {
         this.wss = new WebSocketServer({ port });
 
-        const { address, port:p, family } = this.wss.address() as AddressInfo;
+        const { address, port: p, family } = this.wss.address() as AddressInfo;
         console.log(
             `WebSocket server is up and running: address ${address}, port ${p}, family ${family}}`
         );
@@ -98,7 +98,6 @@ export class GameServer {
         notificationType: NotificationType,
         fromPlayerId?: PlayerId
     ): void {
-        const connection = fromPlayerId ? this.getConnectionByPlayerId(fromPlayerId) : null;
         switch (notificationType) {
             case "all":
                 this.connections.forEach((connection: WebSocket) => {
@@ -106,12 +105,17 @@ export class GameServer {
                 });
                 break;
             case "self":
-                connection && this.sendMessage(connection, messageType, payload);
+                if (fromPlayerId) {
+                    this.sendMessageToPlayer(fromPlayerId, messageType, payload);
+                }
                 break;
             case "others":
-                this.wss.clients.forEach((client: WebSocket) => {
-                    if (client !== connection) {
-                        this.sendMessage(client, messageType, payload);
+                const fromPlayerConnection = fromPlayerId
+                    ? this.getConnectionByPlayerId(fromPlayerId)
+                    : null;
+                this.connections.forEach((connection: WebSocket) => {
+                    if (connection !== fromPlayerConnection) {
+                        this.sendMessage(connection, messageType, payload);
                     }
                 });
                 break;
@@ -140,6 +144,7 @@ export class GameServer {
             if (connection === ws) {
                 console.log(`player ${playerId} disconnected from the server`);
                 this.connections.delete(playerId);
+                removePlayer(playerId);
             }
         }
     }

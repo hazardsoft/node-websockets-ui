@@ -24,7 +24,9 @@ function loginHandler(
         error: !player,
         errorText: !player ? errorMessage : "",
     });
-    sendRoomsUpdateHandler(server, "self", player?.id);
+    if (player) {
+        sendRoomsUpdateHandler(server, "self", player.id);
+    }
 }
 
 export { loginHandler };

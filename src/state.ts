@@ -1,23 +1,29 @@
 import { randomUUID } from "node:crypto";
-import { Ship } from "./types.js";
+import { PlayerId, Ship } from "./types.js";
 import { Player } from "./Player.js";
 import { Game } from "./Game.js";
 import { Room } from "./Room.js";
 
-const users: Player[] = [];
+const players: Player[] = [];
 const rooms: Room[] = [];
 const games: Game[] = [];
 
 function addPlayer(name: string, password: string): Player | undefined {
-    const existingUser: Player | undefined = users.find(
-        (user) => user.name === name && user.password === password
+    const existingPlayer: Player | undefined = players.find(
+        (player) => player.name === name && player.password === password
     );
-    if (existingUser) {
+    if (existingPlayer) {
         return undefined;
     }
-    const user: Player = new Player(randomUUID(), name, password);
-    users.push(user);
-    return user;
+    const player: Player = new Player(randomUUID(), name, password);
+    players.push(player);
+    return player;
+}
+
+function removePlayer(playerId: PlayerId): boolean {
+    const playerIndex = players.findIndex((player) => player.id === playerId);
+    if (playerIndex) players.splice(playerIndex, 1);
+    return playerIndex !== -1;
 }
 
 function createRoom(): void {
@@ -30,7 +36,7 @@ function getRooms(): Room[] {
 }
 
 function getPlayerById(id: string): Player | undefined {
-    return users.find((user) => user.id === id);
+    return players.find((user) => user.id === id);
 }
 
 function joinRoom(roomId: string, player: Player): boolean {
@@ -75,6 +81,7 @@ function setShips(gameId: string, playerId: string, ships: Ship[]): void {
 
 export {
     addPlayer,
+    removePlayer,
     createRoom,
     getRooms,
     joinRoom,
