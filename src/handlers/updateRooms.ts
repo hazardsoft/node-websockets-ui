@@ -18,7 +18,7 @@ function sendRoomsUpdateHandler(
     notificationType: NotificationType,
     playerId?: PlayerId
 ): void {
-    const rooms: InternalRoom[] = getRooms();
+    const rooms: InternalRoom[] = getRooms().filter((room) => !room.isFull());
     const payload: UpdateRoomsPayload = rooms.map((room: InternalRoom) => {
         return <Room>{
             roomId: room.id,

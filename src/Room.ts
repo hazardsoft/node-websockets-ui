@@ -2,6 +2,8 @@ import { RoomId } from "./types.js";
 import { Player } from "./Player.js";
 import { Game } from "./Game.js";
 
+const MAX_NUMBER_OF_PLAYERS = 2;
+
 export class Room {
     private players: Player[] = [];
     private game: Game | null = null;
@@ -37,6 +39,6 @@ export class Room {
     }
 
     public isFull(): boolean {
-        return this.players.length == 2;
+        return this.players.length == MAX_NUMBER_OF_PLAYERS;
     }
 }
