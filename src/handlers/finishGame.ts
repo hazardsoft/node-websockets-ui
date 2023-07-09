@@ -1,8 +1,9 @@
 import { Game } from "../Game.js";
 import { GameServer } from "../server.js";
 import { PlayerId, FinishGamePayload, MessageType } from "../types.js";
-import { emptyRoom } from "../state.js";
+import { emptyRoom, assignWinToPlayer } from "../state.js";
 import { sendRoomsUpdateHandler } from "./updateRooms.js";
+import { sendWinnersUpdateHandler } from "./updateWinners.js";
 
 const commandName: MessageType = "finish";
 
@@ -13,8 +14,10 @@ function finishGameHandler(server: GameServer, game: Game, winnerId: PlayerId): 
             winPlayer: winnerId,
         });
     });
+    assignWinToPlayer(winnerId);
     emptyRoom(game);
     sendRoomsUpdateHandler(server, "all");
+    sendWinnersUpdateHandler(server, "all");
 }
 
 export { finishGameHandler };

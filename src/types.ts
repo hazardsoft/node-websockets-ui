@@ -13,7 +13,8 @@ type MessageType =
     | "turn"
     | "attack"
     | "finish"
-    | "randomAttack";
+    | "randomAttack"
+    | "update_winners";
 
 type Message = {
     type: MessageType;
@@ -104,6 +105,13 @@ type RandomAttackPayload = {
     indexPlayer: string;
 };
 
+type Winner = {
+    name: string;
+    wins: number;
+};
+
+type WinnerPayload = Winner[];
+
 type Position = { x: number; y: number };
 
 export {
@@ -131,4 +139,6 @@ export {
     RandomAttackPayload,
     Position,
     AttackResult,
+    Winner,
+    WinnerPayload,
 };

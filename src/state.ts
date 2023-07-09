@@ -35,8 +35,12 @@ function getRooms(): Room[] {
     return rooms.slice();
 }
 
+function getPlayers(): Player[] {
+    return players.slice();
+}
+
 function getPlayerById(id: string): Player | undefined {
-    return players.find((user) => user.id === id);
+    return players.find((player) => player.id === id);
 }
 
 function joinRoom(roomId: string, player: Player): boolean {
@@ -79,6 +83,13 @@ function setShips(gameId: string, playerId: string, ships: Ship[]): void {
     }
 }
 
+function assignWinToPlayer(playerId: PlayerId): void {
+    const player = getPlayerById(playerId);
+    if (player) {
+        player.wins++;
+    }
+}
+
 export {
     addPlayer,
     removePlayer,
@@ -91,4 +102,6 @@ export {
     setShips,
     createGame,
     emptyRoom,
+    assignWinToPlayer,
+    getPlayers,
 };

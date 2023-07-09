@@ -1,6 +1,7 @@
 import { WebSocket } from "ws";
 import { LoginPayload, LoginResponsePayload, MessageType, PlayerId } from "../types.js";
 import { sendRoomsUpdateHandler } from "./updateRooms.js";
+import { sendWinnersUpdateHandler } from "./updateWinners.js";
 import { addPlayer } from "../state.js";
 import { GameServer } from "../server.js";
 
@@ -26,6 +27,7 @@ function loginHandler(
     });
     if (player) {
         sendRoomsUpdateHandler(server, "self", player.id);
+        sendWinnersUpdateHandler(server, "self", player.id);
     }
 }
 
