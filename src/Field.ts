@@ -78,6 +78,11 @@ export class Field {
         return nearByPositions;
     }
 
+    public getShipPositions(x: number, y: number): Position[] {
+        const ship = this.ships.get(this.getCellId(x, y)) as ShipWithPositions;
+        return ship.getPositions();
+    }
+
     public isAllShipsDestroyed(): boolean {
         let result: boolean = true;
         for (const ship of this.ships.values()) {

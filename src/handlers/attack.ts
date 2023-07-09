@@ -57,6 +57,17 @@ function handleAttackResults(
                 return <AttackResult>{ x: position.x, y: position.y, type: "miss" };
             })
         );
+
+        const shipPositions: Position[] = game.getShipPositions(
+            opponentId,
+            attackResult.x,
+            attackResult.y
+        );
+        attackResultsToNotifyAbout.push(
+            ...shipPositions.map((position) => {
+                return <AttackResult>{ x: position.x, y: position.y, type: "killed" };
+            })
+        );
     }
 
     // send all attack results (including revealed cells around destroyed ship) to attacker

@@ -84,6 +84,11 @@ export class Game {
         return fields.player.getPositionsAroundShip(x, y);
     }
 
+    public getShipPositions(playerId: PlayerId, x: number, y: number): Position[] {
+        const fields: PlayerFields = this.fields.get(playerId) as PlayerFields;
+        return fields.player.getShipPositions(x, y);
+    }
+
     public filterPositionsOnOpponentField(
         playerId: PlayerId,
         positions: Position[],

@@ -28,6 +28,12 @@ export class ShipWithPositions {
         if (part) part.hit = true;
     }
 
+    public getPositions(): Position[] {
+        return this.parts.map((part) => {
+            return { x: part.x, y: part.y };
+        });
+    }
+
     public getNearByPositions(): Position[] {
         const positions: Position[] = [];
         const { x: startX, y: startY } = this.ship.position;
