@@ -12,8 +12,8 @@ function joinRoomHandler(server: GameServer, playerId: PlayerId, payload: JoinRo
     const roomId = payload.indexRoom;
     const currentPlayer: Player = getPlayerById(playerId) as Player;
 
-    const isJoinedToRoom: boolean = joinRoom(roomId, currentPlayer);
-    if (isJoinedToRoom) {
+    const joined: boolean = joinRoom(roomId, currentPlayer);
+    if (joined) {
         const room = getRoomById(roomId) as Room;
         let game: Game;
         if (room.hasGame()) {
@@ -26,9 +26,7 @@ function joinRoomHandler(server: GameServer, playerId: PlayerId, payload: JoinRo
             idGame: game.id,
             idPlayer: playerId,
         });
-        sendRoomsUpdateHandler(server, "others");
-    } else {
-        sendRoomsUpdateHandler(server, "self", playerId);
+        sendRoomsUpdateHandler(server, "all");
     }
 }
 

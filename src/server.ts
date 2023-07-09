@@ -1,6 +1,6 @@
 import { IncomingMessage } from "http";
 import { WebSocket, WebSocketServer, AddressInfo } from "ws";
-import { createRoom, removePlayer } from "./state.js";
+import { removePlayer } from "./state.js";
 import {
     LoginPayload,
     Message,
@@ -16,8 +16,8 @@ import { loginHandler } from "./handlers/login.js";
 import { joinRoomHandler } from "./handlers/joinRoom.js";
 import { attackHandler } from "./handlers/attack.js";
 import { addShipsHandler } from "./handlers/addShips.js";
-import { sendRoomsUpdateHandler } from "./handlers/updateRooms.js";
 import { randomAttackHandler } from "./handlers/randomAttack.js";
+import { createRoomHandler } from "./handlers/createRoom.js";
 
 export class GameServer {
     private connections: Map<PlayerId, WebSocket> = new Map();
@@ -53,13 +53,15 @@ export class GameServer {
                         });
                         break;
                     case "create_room":
-                        createRoom();
-                        sendRoomsUpdateHandler(this, "all");
-                        break;
-                    case "add_user_to_room":
                         const playerId = this.getPlayerIdByConnection(ws);
                         if (playerId) {
-                            joinRoomHandler(this, playerId, <JoinRoomPayload>parsedData);
+                            createRoomHandler(this, playerId);
+                        }
+                        break;
+                    case "add_user_to_room":
+                        const addPlayerId = this.getPlayerIdByConnection(ws);
+                        if (addPlayerId) {
+                            joinRoomHandler(this, addPlayerId, <JoinRoomPayload>parsedData);
                         }
                         break;
                     case "add_ships":

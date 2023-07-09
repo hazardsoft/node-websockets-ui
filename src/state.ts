@@ -26,9 +26,10 @@ function removePlayer(playerId: PlayerId): boolean {
     return playerIndex !== -1;
 }
 
-function createRoom(): void {
+function createRoom(): Room {
     const room: Room = new Room(randomUUID());
     rooms.push(room);
+    return room;
 }
 
 function getRooms(): Room[] {
