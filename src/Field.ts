@@ -46,7 +46,6 @@ export class Field {
     public setShips(ships: Ship[]): void {
         this.origShips.length = 0;
         ships.forEach((ship) => this.addShip(ship));
-        console.table(this.cells);
     }
 
     public getShips(): Ship[] {
