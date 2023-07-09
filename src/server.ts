@@ -1,5 +1,5 @@
 import { IncomingMessage } from "http";
-import { WebSocket, WebSocketServer } from "ws";
+import { WebSocket, WebSocketServer, AddressInfo } from "ws";
 import { createRoom } from "./state.js";
 import {
     LoginPayload,
@@ -20,21 +20,23 @@ import { sendRoomsUpdateHandler } from "./handlers/updateRooms.js";
 import { randomAttackHandler } from "./handlers/randomAttack.js";
 
 export class GameServer {
-    private connections: Map<WebSocket, PlayerId> = new Map();
+    private connections: Map<PlayerId, WebSocket> = new Map();
     private wss: WebSocketServer;
 
     constructor(port: number) {
         this.wss = new WebSocketServer({ port });
 
-        this.wss.on("connection", (ws: WebSocket, req: IncomingMessage): void => {
-            console.log("wss: connection event");
+        const { address, port:p, family } = this.wss.address() as AddressInfo;
+        console.log(
+            `WebSocket server is up and running: address ${address}, port ${p}, family ${family}}`
+        );
 
+        this.wss.on("connection", (ws: WebSocket, req: IncomingMessage): void => {
             ws.on("error", (error: Error) => {
                 console.error(error);
             });
             ws.on("close", () => {
-                console.log("ws connection closed by client");
-                this.connections.delete(ws);
+                this.removeConnection(ws);
             });
 
             ws.on("message", (data: Buffer | ArrayBuffer | Buffer[], isBinary: boolean) => {
@@ -47,7 +49,7 @@ export class GameServer {
                 switch (message.type) {
                     case "reg":
                         loginHandler(this, ws, <LoginPayload>parsedData, (playerId: PlayerId) => {
-                            this.setPlayerId(ws, playerId);
+                            this.setConnectionByPlayerId(playerId, ws);
                         });
                         break;
                     case "create_room":
@@ -55,7 +57,7 @@ export class GameServer {
                         sendRoomsUpdateHandler(this, "all");
                         break;
                     case "add_user_to_room":
-                        const playerId = this.getPlayerId(ws);
+                        const playerId = this.getPlayerIdByConnection(ws);
                         if (playerId) {
                             joinRoomHandler(this, playerId, <JoinRoomPayload>parsedData);
                         }
@@ -99,8 +101,8 @@ export class GameServer {
         const connection = fromPlayerId ? this.getConnectionByPlayerId(fromPlayerId) : null;
         switch (notificationType) {
             case "all":
-                this.wss.clients.forEach((client: WebSocket) => {
-                    this.sendMessage(client, messageType, payload);
+                this.connections.forEach((connection: WebSocket) => {
+                    this.sendMessage(connection, messageType, payload);
                 });
                 break;
             case "self":
@@ -116,20 +118,29 @@ export class GameServer {
         }
     }
 
+    private setConnectionByPlayerId(playerId: PlayerId, connection: WebSocket): void {
+        this.connections.set(playerId, connection);
+    }
+
     private getConnectionByPlayerId(playerId: string): WebSocket | undefined {
-        for (const [ws, id] of this.connections.entries()) {
-            if (id === playerId) {
-                return ws;
+        return this.connections.get(playerId);
+    }
+
+    private getPlayerIdByConnection(ws: WebSocket): PlayerId | undefined {
+        for (const [playerId, connection] of this.connections.entries()) {
+            if (connection === ws) {
+                return playerId;
             }
         }
         return undefined;
     }
 
-    private getPlayerId(ws: WebSocket): PlayerId | undefined {
-        return this.connections.get(ws);
-    }
-
-    public setPlayerId(ws: WebSocket, playerId: PlayerId): void {
-        this.connections.set(ws, playerId);
+    private removeConnection(ws: WebSocket): void {
+        for (const [playerId, connection] of this.connections.entries()) {
+            if (connection === ws) {
+                console.log(`player ${playerId} disconnected from the server`);
+                this.connections.delete(playerId);
+            }
+        }
     }
 }
