@@ -111,6 +111,10 @@ function getGameById(id: string): Game | undefined {
     return games.find((game) => game.id === id);
 }
 
+function getGameByPlayerId(playerId: PlayerId): Game | undefined {
+    return games.find((game) => game.getPlayersIds().includes(playerId));
+}
+
 function setShips(gameId: string, playerId: string, ships: Ship[]): void {
     const game: Game | undefined = getGameById(gameId);
     if (game) {
@@ -145,5 +149,6 @@ export {
     getGameInRoom,
     setGameInRoom,
     removeRoomByGame,
-    getPlayers
+    getPlayers,
+    getGameByPlayerId,
 };

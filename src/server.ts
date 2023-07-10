@@ -18,6 +18,7 @@ import { attackHandler } from "./handlers/attack.js";
 import { addShipsHandler } from "./handlers/addShips.js";
 import { randomAttackHandler } from "./handlers/randomAttack.js";
 import { createRoomHandler } from "./handlers/createRoom.js";
+import { forceFinishGameHandler } from "./handlers/forceFinish.js";
 
 export class GameServer {
     private connections: Map<PlayerId, WebSocket> = new Map();
@@ -143,6 +144,7 @@ export class GameServer {
                 console.log(`player ${playerId} disconnected from the server`);
                 this.connections.delete(playerId);
                 removeActivePlayer(playerId);
+                forceFinishGameHandler(this, playerId);
             }
         }
     }
