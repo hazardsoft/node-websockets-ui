@@ -7,6 +7,7 @@ import { Room } from "./model/Room.js";
 const players: Player[] = [];
 const rooms: Room[] = [];
 const games: Game[] = [];
+const gamesInRooms: Map<Room, Game> = new Map();
 
 function addPlayer(name: string, password: string): Player | undefined {
     const existingPlayer: Player | undefined = players.find(
@@ -30,6 +31,28 @@ function createRoom(): Room {
     const room: Room = new Room(randomUUID());
     rooms.push(room);
     return room;
+}
+
+function hasGameInRoom(room: Room): boolean {
+    return gamesInRooms.has(room);
+}
+
+function setGameInRoom(room: Room, game: Game): void {
+    gamesInRooms.set(room, game);
+}
+
+function getGameInRoom(room: Room): Game | undefined {
+    return gamesInRooms.get(room);
+}
+
+function removeRoomByGame(gameToRemove: Game): void {
+    for (const [room, game] of gamesInRooms.entries()) {
+        if (game === gameToRemove) {
+            room.removePlayers();
+            gamesInRooms.delete(room);
+            return;
+        }
+    }
 }
 
 function getRooms(): Room[] {
@@ -61,14 +84,7 @@ function createGame(): Game {
     return game;
 }
 
-function emptyRoom(game: Game): void {
-    rooms.forEach((room) => {
-        if (room.hasGame() && room.getGame() === game) {
-            room.removeGame();
-            room.removePlayers();
-            return;
-        }
-    });
+function removeGame(game: Game): void {
     const gameIndex = games.indexOf(game);
     games.splice(gameIndex, 1);
 }
@@ -102,7 +118,11 @@ export {
     getGameById,
     setShips,
     createGame,
-    emptyRoom,
+    removeGame,
     assignWinToPlayer,
     getPlayers,
+    hasGameInRoom,
+    getGameInRoom,
+    setGameInRoom,
+    removeRoomByGame,
 };

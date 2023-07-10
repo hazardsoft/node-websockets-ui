@@ -1,12 +1,10 @@
 import { RoomId } from "../types.js";
 import { Player } from "./Player.js";
-import { Game } from "./Game.js";
 
 const MAX_NUMBER_OF_PLAYERS = 2;
 
 export class Room {
     private players: Player[] = [];
-    private game: Game | null = null;
 
     constructor(public id: RoomId) {}
 
@@ -22,20 +20,8 @@ export class Room {
         this.players.length = 0;
     }
 
-    public assignGame(game: Game): void {
-        this.game = game;
-    }
-
-    public removeGame(): void {
-        this.game = null;
-    }
-
-    public hasGame(): boolean {
-        return !!this.game;
-    }
-
-    public getGame(): Game | null {
-        return this.game;
+    public isEmpty(): boolean {
+        return this.players.length === 0;
     }
 
     public isFull(): boolean {
