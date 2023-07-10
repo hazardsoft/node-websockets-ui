@@ -3,28 +3,38 @@ import { PlayerId, Ship } from "./types.js";
 import { Player } from "./model/Player.js";
 import { Game } from "./model/Game.js";
 import { Room } from "./model/Room.js";
+import { AlreadyAuthenticated, IncorrectCredentials, UserNotFound } from "./errors.js";
 
 const players: Player[] = [];
+const activePlayers: Player[] = [];
 const rooms: Room[] = [];
 const games: Game[] = [];
 const gamesInRooms: Map<Room, Game> = new Map();
 
-function addPlayer(name: string, password: string): Player | undefined {
-    const existingPlayer: Player | undefined = players.find(
-        (player) => player.name === name && player.password === password
-    );
-    if (existingPlayer) {
-        return undefined;
-    }
-    const player: Player = new Player(randomUUID(), name, password);
+function authPlayer(name: string, password: string): Player {
+    const authPlayer = activePlayers.find((player) => player.name === name);
+    if (authPlayer) throw new AlreadyAuthenticated();
+
+    const player = players.find((player) => player.name === name);
+    if (!player) throw new UserNotFound();
+    if (player.password !== password.trim()) throw new IncorrectCredentials();
+
+    return player;
+}
+
+function registerPlayer(name: string, password: string): Player {
+    const player: Player = new Player(randomUUID(), name, password.trim());
     players.push(player);
     return player;
 }
 
-function removePlayer(playerId: PlayerId): boolean {
-    const playerIndex = players.findIndex((player) => player.id === playerId);
-    if (playerIndex) players.splice(playerIndex, 1);
-    return playerIndex !== -1;
+function addActivePlayer(player: Player): void {
+    activePlayers.push(player);
+}
+
+function removeActivePlayer(playerId: PlayerId): void {
+    const index = activePlayers.findIndex((player) => player.id === playerId);
+    if (index !== -1) activePlayers.splice(index, 1);
 }
 
 function createRoom(): Room {
@@ -50,6 +60,10 @@ function removeRoomByGame(gameToRemove: Game): void {
         if (game === gameToRemove) {
             room.removePlayers();
             gamesInRooms.delete(room);
+            const roomIndex = rooms.indexOf(room);
+            if (roomIndex !== -1) {
+                rooms.splice(roomIndex);
+            }
             return;
         }
     }
@@ -57,6 +71,10 @@ function removeRoomByGame(gameToRemove: Game): void {
 
 function getRooms(): Room[] {
     return rooms.slice();
+}
+
+function getActivePlayers(): Player[] {
+    return activePlayers.slice();
 }
 
 function getPlayers(): Player[] {
@@ -108,8 +126,10 @@ function assignWinToPlayer(playerId: PlayerId): void {
 }
 
 export {
-    addPlayer,
-    removePlayer,
+    authPlayer,
+    registerPlayer,
+    addActivePlayer,
+    removeActivePlayer,
     createRoom,
     getRooms,
     joinRoom,
@@ -120,9 +140,10 @@ export {
     createGame,
     removeGame,
     assignWinToPlayer,
-    getPlayers,
+    getActivePlayers,
     hasGameInRoom,
     getGameInRoom,
     setGameInRoom,
     removeRoomByGame,
+    getPlayers
 };

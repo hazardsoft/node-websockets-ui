@@ -1,6 +1,6 @@
 import { IncomingMessage } from "http";
 import { WebSocket, WebSocketServer, AddressInfo } from "ws";
-import { removePlayer } from "./state.js";
+import { getActivePlayers, removeActivePlayer } from "./state.js";
 import {
     LoginPayload,
     Message,
@@ -48,9 +48,7 @@ export class GameServer {
                     message.data && message.data.length ? JSON.parse(message.data) : null;
                 switch (message.type) {
                     case "reg":
-                        loginHandler(this, ws, <LoginPayload>parsedData, (playerId: PlayerId) => {
-                            this.setConnectionByPlayerId(playerId, ws);
-                        });
+                        loginHandler(this, ws, <LoginPayload>parsedData);
                         break;
                     case "create_room":
                         const playerId = this.getPlayerIdByConnection(ws);
@@ -89,6 +87,7 @@ export class GameServer {
         const message: Message = {
             type: messageType,
             data: payload ? JSON.stringify(payload) : "",
+            id: 0,
         };
         console.log(`outbound message -> `, message);
         connection.send(JSON.stringify(message));
@@ -102,8 +101,8 @@ export class GameServer {
     ): void {
         switch (notificationType) {
             case "all":
-                this.connections.forEach((connection: WebSocket) => {
-                    this.sendMessage(connection, messageType, payload);
+                getActivePlayers().forEach((player) => {
+                    this.sendMessageToPlayer(player.id, messageType, payload);
                 });
                 break;
             case "self":
@@ -112,27 +111,24 @@ export class GameServer {
                 }
                 break;
             case "others":
-                const fromPlayerConnection = fromPlayerId
-                    ? this.getConnectionByPlayerId(fromPlayerId)
-                    : null;
-                this.connections.forEach((connection: WebSocket) => {
-                    if (connection !== fromPlayerConnection) {
-                        this.sendMessage(connection, messageType, payload);
+                getActivePlayers().forEach((player) => {
+                    if (fromPlayerId !== player.id) {
+                        this.sendMessageToPlayer(player.id, messageType, payload);
                     }
                 });
                 break;
         }
     }
 
-    private setConnectionByPlayerId(playerId: PlayerId, connection: WebSocket): void {
+    public setConnectionByPlayerId(playerId: PlayerId, connection: WebSocket): void {
         this.connections.set(playerId, connection);
     }
 
-    private getConnectionByPlayerId(playerId: string): WebSocket | undefined {
+    public getConnectionByPlayerId(playerId: string): WebSocket | undefined {
         return this.connections.get(playerId);
     }
 
-    private getPlayerIdByConnection(ws: WebSocket): PlayerId | undefined {
+    public getPlayerIdByConnection(ws: WebSocket): PlayerId | undefined {
         for (const [playerId, connection] of this.connections.entries()) {
             if (connection === ws) {
                 return playerId;
@@ -146,7 +142,7 @@ export class GameServer {
             if (connection === ws) {
                 console.log(`player ${playerId} disconnected from the server`);
                 this.connections.delete(playerId);
-                removePlayer(playerId);
+                removeActivePlayer(playerId);
             }
         }
     }
