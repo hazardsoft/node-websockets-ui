@@ -1,11 +1,16 @@
-import { GameServer } from "../server.js";
+import { GameServer, MessageHandler } from "../server.js";
 import { getGameById, setShips } from "../state.js";
 import { AddShipsPayload, PlayerId } from "../types.js";
 import { Game } from "../model/Game.js";
 import { startGameHandler } from "./startGame.js";
 import { changeTurnHandler } from "./changeTurn.js";
 
-function addShipsHandler(server: GameServer, payload: AddShipsPayload): void {
+const addShipsHandler: MessageHandler = (
+    server: GameServer,
+    _,
+    __,
+    payload: AddShipsPayload
+): void => {
     const { gameId, indexPlayer, ships } = payload;
     setShips(gameId, indexPlayer, ships);
 
@@ -18,6 +23,6 @@ function addShipsHandler(server: GameServer, payload: AddShipsPayload): void {
         });
         changeTurnHandler(server, game, indexPlayer);
     }
-}
+};
 
 export { addShipsHandler };

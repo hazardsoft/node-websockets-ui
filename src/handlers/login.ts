@@ -3,13 +3,18 @@ import { LoginPayload, LoginResponsePayload, MessageType, PlayerId } from "../ty
 import { sendRoomsUpdateHandler } from "./updateRooms.js";
 import { sendWinnersUpdateHandler } from "./updateWinners.js";
 import { registerPlayer, authPlayer, addActivePlayer } from "../state.js";
-import { GameServer } from "../server.js";
+import { GameServer, MessageHandler } from "../server.js";
 import { Player } from "../model/Player.js";
 import { AlreadyAuthenticated, IncorrectCredentials, UserNotFound } from "../errors.js";
 
 const commandName: MessageType = "reg";
 
-function loginHandler(server: GameServer, connection: WebSocket, payload: LoginPayload) {
+const loginHandler: MessageHandler = (
+    server: GameServer,
+    connection: WebSocket,
+    _,
+    payload: LoginPayload
+): void => {
     const { name, password } = payload;
     let player: Player | undefined;
     try {
@@ -39,7 +44,7 @@ function loginHandler(server: GameServer, connection: WebSocket, payload: LoginP
         sendRoomsUpdateHandler(server, "self", player.id);
         sendWinnersUpdateHandler(server, "self", player.id);
     }
-}
+};
 
 function sendError(
     server: GameServer,

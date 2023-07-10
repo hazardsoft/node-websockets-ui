@@ -1,17 +1,7 @@
 import { IncomingMessage } from "http";
 import { WebSocket, WebSocketServer, AddressInfo } from "ws";
 import { getActivePlayers, removeActivePlayer } from "./state.js";
-import {
-    LoginPayload,
-    Message,
-    JoinRoomPayload,
-    PlayerId,
-    AddShipsPayload,
-    AttackPayload,
-    MessageType,
-    NotificationType,
-    RandomAttackPayload,
-} from "./types.js";
+import { Message, PlayerId, MessageType, NotificationType } from "./types.js";
 import { loginHandler } from "./handlers/login.js";
 import { joinRoomHandler } from "./handlers/joinRoom.js";
 import { attackHandler } from "./handlers/attack.js";
@@ -20,9 +10,31 @@ import { randomAttackHandler } from "./handlers/randomAttack.js";
 import { createRoomHandler } from "./handlers/createRoom.js";
 import { forceFinishGameHandler } from "./handlers/forceFinish.js";
 
-export class GameServer {
+type MessageHandler = (
+    server: GameServer,
+    connection: WebSocket,
+    currentPlayerId: PlayerId,
+    payload: any
+) => void;
+
+class GameServer {
     private connections: Map<PlayerId, WebSocket> = new Map();
     private wss: WebSocketServer;
+    private handlers: Record<MessageType, MessageHandler | null> = {
+        reg: loginHandler,
+        create_room: createRoomHandler,
+        add_user_to_room: joinRoomHandler,
+        add_ships: addShipsHandler,
+        attack: attackHandler,
+        randomAttack: randomAttackHandler,
+
+        create_game: null,
+        start_game: null,
+        turn: null,
+        finish: null,
+        update_room: null,
+        update_winners: null,
+    };
 
     constructor(port: number) {
         this.wss = new WebSocketServer({ port });
@@ -43,35 +55,13 @@ export class GameServer {
             ws.on("message", (data: Buffer | ArrayBuffer | Buffer[], isBinary: boolean) => {
                 console.log("-> inbound message %s", data);
 
-                const str: string = data.toString();
-                const message: Message = JSON.parse(str);
-                const parsedData: Record<string, unknown> =
+                const message: Message = JSON.parse(data.toString());
+                const payload: Record<string, unknown> =
                     message.data && message.data.length ? JSON.parse(message.data) : null;
-                switch (message.type) {
-                    case "reg":
-                        loginHandler(this, ws, <LoginPayload>parsedData);
-                        break;
-                    case "create_room":
-                        const playerId = this.getPlayerIdByConnection(ws);
-                        if (playerId) {
-                            createRoomHandler(this, playerId);
-                        }
-                        break;
-                    case "add_user_to_room":
-                        const addPlayerId = this.getPlayerIdByConnection(ws);
-                        if (addPlayerId) {
-                            joinRoomHandler(this, addPlayerId, <JoinRoomPayload>parsedData);
-                        }
-                        break;
-                    case "add_ships":
-                        addShipsHandler(this, <AddShipsPayload>parsedData);
-                        break;
-                    case "attack":
-                        attackHandler(this, <AttackPayload>parsedData);
-                        break;
-                    case "randomAttack":
-                        randomAttackHandler(this, <RandomAttackPayload>parsedData);
-                        break;
+                const handler = this.handlers[message.type];
+                if (handler) {
+                    const currentPlayerId = this.getPlayerIdByConnection(ws);
+                    handler(this, ws, currentPlayerId || "", payload);
                 }
             });
         });
@@ -149,3 +139,5 @@ export class GameServer {
         }
     }
 }
+
+export { GameServer, MessageHandler };

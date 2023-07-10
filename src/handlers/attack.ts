@@ -7,7 +7,7 @@ import {
     Position,
 } from "../types.js";
 import { getGameById } from "../state.js";
-import { GameServer } from "../server.js";
+import { GameServer, MessageHandler } from "../server.js";
 import { Game } from "../model/Game.js";
 import { changeTurnHandler } from "./changeTurn.js";
 import { finishGameHandler } from "./finishGame.js";
@@ -15,7 +15,7 @@ import { CELL } from "../model/Field.js";
 
 const commandName: MessageType = "attack";
 
-function attackHandler(server: GameServer, payload: AttackPayload) {
+const attackHandler: MessageHandler = (server: GameServer, _, __, payload: AttackPayload): void => {
     const game = getGameById(payload.gameId);
     if (game && payload.indexPlayer === game.getTurn()) {
         const attackerId = payload.indexPlayer;
@@ -28,7 +28,7 @@ function attackHandler(server: GameServer, payload: AttackPayload) {
             // player tries to attack field with already known result
         }
     }
-}
+};
 
 function handleAttackResults(
     server: GameServer,
