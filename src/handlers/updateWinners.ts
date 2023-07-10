@@ -1,4 +1,4 @@
-import { Player } from "../Player.js";
+import { Player } from "../model/Player.js";
 import { GameServer } from "../server.js";
 import { getPlayers } from "../state.js";
 import { MessageType, NotificationType, PlayerId, Winner, WinnerPayload } from "../types.js";

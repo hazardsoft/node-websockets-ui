@@ -6,8 +6,8 @@ import {
     PlayerId,
     MessageType,
 } from "../types.js";
-import { Room as InternalRoom } from "../Room.js";
-import { Player as InternalPlayer } from "../Player.js";
+import { Room as InternalRoom } from "../model/Room.js";
+import { Player as InternalPlayer } from "../model/Player.js";
 import { getRooms } from "../state.js";
 import { GameServer } from "../server.js";
 

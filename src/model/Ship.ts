@@ -1,4 +1,4 @@
-import { Position, Ship } from "./types.js";
+import { Position, Ship } from "../types.js";
 
 type ShipPart = {
     x: number;

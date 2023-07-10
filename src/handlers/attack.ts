@@ -8,10 +8,10 @@ import {
 } from "../types.js";
 import { getGameById } from "../state.js";
 import { GameServer } from "../server.js";
-import { Game } from "../Game.js";
+import { Game } from "../model/Game.js";
 import { changeTurnHandler } from "./changeTurn.js";
 import { finishGameHandler } from "./finishGame.js";
-import { CELL } from "../Field.js";
+import { CELL } from "../model/Field.js";
 
 const commandName: MessageType = "attack";
 

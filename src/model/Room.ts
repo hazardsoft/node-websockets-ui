@@ -1,4 +1,4 @@
-import { RoomId } from "./types.js";
+import { RoomId } from "../types.js";
 import { Player } from "./Player.js";
 import { Game } from "./Game.js";
 

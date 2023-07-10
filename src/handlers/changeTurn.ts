@@ -1,4 +1,4 @@
-import { Game } from "../Game.js";
+import { Game } from "../model/Game.js";
 import { GameServer } from "../server.js";
 import { MessageType, PlayerId, TurnPayload } from "../types.js";
 

@@ -1,9 +1,9 @@
 import { CreateGamePayload, JoinRoomPayload, MessageType, PlayerId } from "../types.js";
 import { joinRoom, getPlayerById, getRoomById, createGame } from "../state.js";
 import { sendRoomsUpdateHandler } from "./updateRooms.js";
-import { Room } from "../Room.js";
-import { Game } from "../Game.js";
-import { Player } from "../Player.js";
+import { Room } from "../model/Room.js";
+import { Game } from "../model/Game.js";
+import { Player } from "../model/Player.js";
 import { GameServer } from "../server.js";
 
 const commandName: MessageType = "create_game";

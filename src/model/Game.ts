@@ -1,5 +1,5 @@
-import { AttackResult, PlayerId, Position } from "./types.js";
-import { AttackResultType, Ship } from "./types.js";
+import { AttackResult, PlayerId, Position } from "../types.js";
+import { AttackResultType, Ship } from "../types.js";
 import { Field, OpponentField, CELL } from "./Field.js";
 
 type PlayerFields = {

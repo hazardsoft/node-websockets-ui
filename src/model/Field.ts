@@ -1,5 +1,5 @@
 import { ShipWithPositions } from "./Ship.js";
-import { Ship, AttackResultType, Position, AttackResult } from "./types.js";
+import { Ship, AttackResultType, Position, AttackResult } from "../types.js";
 
 export const enum CELL {
     UNKNOWN = 0,

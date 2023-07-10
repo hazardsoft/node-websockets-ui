@@ -1,4 +1,4 @@
-import { PlayerId } from "./types.js";
+import { PlayerId } from "../types.js";
 
 export class Player {
     public wins: number = 0;

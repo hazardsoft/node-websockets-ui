@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { PlayerId, Ship } from "./types.js";
-import { Player } from "./Player.js";
-import { Game } from "./Game.js";
-import { Room } from "./Room.js";
+import { Player } from "./model/Player.js";
+import { Game } from "./model/Game.js";
+import { Room } from "./model/Room.js";
 
 const players: Player[] = [];
 const rooms: Room[] = [];

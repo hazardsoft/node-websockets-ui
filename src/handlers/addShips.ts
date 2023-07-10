@@ -1,7 +1,7 @@
 import { GameServer } from "../server.js";
 import { getGameById, setShips } from "../state.js";
 import { AddShipsPayload, PlayerId } from "../types.js";
-import { Game } from "../Game.js";
+import { Game } from "../model/Game.js";
 import { startGameHandler } from "./startGame.js";
 import { changeTurnHandler } from "./changeTurn.js";
 

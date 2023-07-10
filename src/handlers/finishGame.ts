@@ -1,4 +1,4 @@
-import { Game } from "../Game.js";
+import { Game } from "../model/Game.js";
 import { GameServer } from "../server.js";
 import { PlayerId, FinishGamePayload, MessageType } from "../types.js";
 import { emptyRoom, assignWinToPlayer } from "../state.js";
