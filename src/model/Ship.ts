@@ -1,4 +1,4 @@
-import { Position, Ship } from "../types.js";
+import { Position } from "../types.js";
 
 type ShipPart = {
     x: number;
@@ -8,19 +8,27 @@ type ShipPart = {
 
 export class ShipWithPositions {
     private parts: ShipPart[] = [];
+    private positions: Position[] = [];
+    private nearByPositions: Position[] = [];
+    public direction: boolean = false;
     private destroyed: boolean = false;
 
-    constructor(private ship: Ship) {
-        const { x, y } = ship.position;
-        const { length, direction } = ship;
+    constructor(x: number, y: number, direction: boolean, size: number) {
+        this.direction = direction;
 
-        for (let i = 0; i < length; i++) {
-            this.parts.push({
+        for (let i = 0; i < size; i++) {
+            const position: Position = {
                 x: direction ? x : x + i,
                 y: direction ? y + i : y,
+            };
+            this.parts.push({
+                ...position,
                 hit: false,
             });
+            this.positions.push(position);
         }
+
+        this.nearByPositions = this.calculateNearByPositions(x, y, direction, size);
     }
 
     public hit(x: number, y: number): void {
@@ -29,26 +37,36 @@ export class ShipWithPositions {
     }
 
     public getPositions(): Position[] {
-        return this.parts.map((part) => {
-            return { x: part.x, y: part.y };
-        });
+        return this.positions.slice();
     }
 
     public getNearByPositions(): Position[] {
-        const positions: Position[] = [];
-        const { x: startX, y: startY } = this.ship.position;
-        const { direction, length } = this.ship;
+        return this.nearByPositions.slice();
+    }
 
-        const shipStart: Position = { x: startX, y: startY };
+    public isDestroyed(): boolean {
+        if (this.destroyed) return true;
+        return (this.destroyed = this.parts.every((part) => part.hit));
+    }
+
+    private calculateNearByPositions(
+        x: number,
+        y: number,
+        direction: boolean,
+        size: number
+    ): Position[] {
+        const positions: Position[] = [];
+
+        const shipStart: Position = { x, y };
         const shipEnd: Position = {
-            x: direction ? startX : startX + length - 1,
-            y: direction ? startY + length - 1 : startY,
+            x: direction ? x : x + size - 1,
+            y: direction ? y + size - 1 : y,
         };
 
-        const nearByStart: Position = { x: startX - 1, y: startY - 1 };
+        const nearByStart: Position = { x: x - 1, y: y - 1 };
         const nearByEnd: Position = {
-            x: direction ? startX + 1 : startX + length,
-            y: direction ? startY + length : startY + 1,
+            x: direction ? x + 1 : x + size,
+            y: direction ? y + size : y + 1,
         };
 
         for (let i = nearByStart.x; i <= nearByEnd.x; i++) {
@@ -60,11 +78,6 @@ export class ShipWithPositions {
         }
 
         return positions;
-    }
-
-    public isDestroyed(): boolean {
-        if (this.destroyed) return true;
-        return (this.destroyed = this.parts.every((part) => part.hit));
     }
 
     public toString(): string {

@@ -45,11 +45,12 @@ type CreateGamePayload = {
     idPlayer: string;
 };
 
+type ShipType = "small" | "medium" | "large" | "huge";
 type Ship = {
     position: { x: number; y: number };
     direction: boolean;
     length: number;
-    type: "small" | "medium" | "large" | "huge";
+    type: ShipType;
 };
 
 type RoomUser = {
@@ -115,11 +116,19 @@ type WinnerPayload = Winner[];
 
 type Position = { x: number; y: number };
 
+const ShipTypes: Record<number, ShipType> = {
+    1: "small",
+    2: "medium",
+    3: "large",
+    4: "huge",
+};
+
 export {
     PlayerId,
     RoomId,
     GameId,
     Ship,
+    ShipType,
     LoginPayload,
     LoginResponsePayload,
     Message,
@@ -142,4 +151,5 @@ export {
     AttackResult,
     Winner,
     WinnerPayload,
+    ShipTypes,
 };

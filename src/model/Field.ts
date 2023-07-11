@@ -1,5 +1,6 @@
 import { ShipWithPositions } from "./Ship.js";
-import { Ship, AttackResultType, Position, AttackResult } from "../types.js";
+import { Ship, AttackResultType, Position } from "../types.js";
+import { FIELD_SIZE } from "../config.js";
 
 export const enum CELL {
     UNKNOWN = 0,
@@ -8,7 +9,6 @@ export const enum CELL {
     SHIP_HIT = 3,
 }
 type CellId = string;
-const FIELD_SIZE = 10;
 
 export class Field {
     private cells: CELL[][];
@@ -28,7 +28,12 @@ export class Field {
 
     private addShip(ship: Ship): void {
         this.origShips.push(ship);
-        const shipWithPositions = new ShipWithPositions(ship);
+        const shipWithPositions = new ShipWithPositions(
+            ship.position.x,
+            ship.position.y,
+            ship.direction,
+            ship.length
+        );
 
         const { x: startX, y: startY } = ship.position;
         for (let i = 0; i < ship.length; i++) {
