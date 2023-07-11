@@ -9,6 +9,7 @@ import { addShipsHandler } from "./handlers/addShips.js";
 import { randomAttackHandler } from "./handlers/randomAttack.js";
 import { createRoomHandler } from "./handlers/createRoom.js";
 import { forceFinishGameHandler } from "./handlers/forceFinish.js";
+import { botHandler } from "./handlers/botHandler.js";
 
 type MessageHandler = (
     server: GameServer,
@@ -27,6 +28,7 @@ class GameServer {
         add_ships: addShipsHandler,
         attack: attackHandler,
         randomAttack: randomAttackHandler,
+        single_play: botHandler,
 
         create_game: null,
         start_game: null,

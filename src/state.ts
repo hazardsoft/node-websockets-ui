@@ -51,7 +51,7 @@ function setGameInRoom(room: Room, game: Game): void {
     gamesInRooms.set(room, game);
 }
 
-function getGameInRoom(room: Room): Game | undefined {
+function getGameByRoom(room: Room): Game | undefined {
     return gamesInRooms.get(room);
 }
 
@@ -94,6 +94,15 @@ function joinRoom(roomId: string, player: Player): boolean {
 
 function getRoomById(roomId: string): Room | undefined {
     return rooms.find((room) => room.id === roomId);
+}
+
+function getRoomByGame(game: Game): Room | undefined {
+    for (const [r, g] of gamesInRooms.entries()) {
+        if (g === game) {
+            return r;
+        }
+    }
+    return undefined;
 }
 
 function createGame(): Game {
@@ -146,9 +155,10 @@ export {
     assignWinToPlayer,
     getActivePlayers,
     hasGameInRoom,
-    getGameInRoom,
+    getGameByRoom,
     setGameInRoom,
     removeRoomByGame,
     getPlayers,
     getGameByPlayerId,
+    getRoomByGame
 };

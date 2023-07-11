@@ -14,7 +14,8 @@ type MessageType =
     | "attack"
     | "finish"
     | "randomAttack"
-    | "update_winners";
+    | "update_winners"
+    | "single_play";
 
 type Message = {
     type: MessageType;

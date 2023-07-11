@@ -5,7 +5,7 @@ import {
     getRoomById,
     createGame,
     hasGameInRoom,
-    getGameInRoom,
+    getGameByRoom,
     setGameInRoom,
 } from "../state.js";
 import { sendRoomsUpdateHandler } from "./updateRooms.js";
@@ -28,7 +28,7 @@ const joinRoomHandler: MessageHandler = (
     const joined: boolean = joinRoom(roomId, currentPlayer);
     if (joined) {
         const room = getRoomById(roomId) as Room;
-        const game = hasGameInRoom(room) ? (getGameInRoom(room) as Game) : createGame();
+        const game = hasGameInRoom(room) ? (getGameByRoom(room) as Game) : createGame();
         setGameInRoom(room, game);
         server.sendMessageToPlayer(currentPlayerId, commandName, <CreateGamePayload>{
             idGame: game.id,
