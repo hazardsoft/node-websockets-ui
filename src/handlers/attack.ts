@@ -19,7 +19,7 @@ const attackHandler: MessageHandler = (server: GameServer, _, __, payload: Attac
     const game = getGameById(payload.gameId);
     if (game && payload.indexPlayer === game.getTurn()) {
         const attackerId = payload.indexPlayer;
-        const opponentId = game.getOpponentId(attackerId) as PlayerId;
+        const opponentId = game.getOpponentId(attackerId)!;
 
         const attackResult = game.attackPlayer(opponentId, payload.x, payload.y);
         if (attackResult && attackResult.type !== "none") {

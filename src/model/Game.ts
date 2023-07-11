@@ -62,7 +62,7 @@ export class Game {
 
     public attackPlayer(playerId: PlayerId, x: number, y: number): AttackResult | undefined {
         if (this.fields.has(playerId)) {
-            const field: PlayerFields = this.fields.get(playerId) as PlayerFields;
+            const field: PlayerFields = this.fields.get(playerId)!;
             const attackResultType: AttackResultType = field.player.attack(x, y);
             return { x, y, type: attackResultType };
         }
@@ -75,17 +75,17 @@ export class Game {
     }
 
     public getRandomPositionToAttack(playerId: PlayerId): Position {
-        const fields: PlayerFields | undefined = this.fields.get(playerId) as PlayerFields;
+        const fields: PlayerFields | undefined = this.fields.get(playerId)!;
         return fields.opponent.getRandomPositionToAttack();
     }
 
     public getPositionsAroundShip(playerId: PlayerId, x: number, y: number): Position[] {
-        const fields: PlayerFields = this.fields.get(playerId) as PlayerFields;
+        const fields: PlayerFields = this.fields.get(playerId)!;
         return fields.player.getPositionsAroundShip(x, y);
     }
 
     public getShipPositions(playerId: PlayerId, x: number, y: number): Position[] {
-        const fields: PlayerFields = this.fields.get(playerId) as PlayerFields;
+        const fields: PlayerFields = this.fields.get(playerId)!;
         return fields.player.getShipPositions(x, y);
     }
 
@@ -94,7 +94,7 @@ export class Game {
         positions: Position[],
         filterBy: CELL
     ): Position[] {
-        const fields: PlayerFields = this.fields.get(playerId) as PlayerFields;
+        const fields: PlayerFields = this.fields.get(playerId)!;
         return fields.opponent.filterPositions(positions, filterBy);
     }
 

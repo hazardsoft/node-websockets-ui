@@ -1,7 +1,6 @@
 import { GameServer, MessageHandler } from "../server.js";
 import { getGameById, setShips } from "../state.js";
-import { AddShipsPayload, PlayerId } from "../types.js";
-import { Game } from "../model/Game.js";
+import { AddShipsPayload } from "../types.js";
 import { startGameHandler } from "./startGame.js";
 import { changeTurnHandler } from "./changeTurn.js";
 
@@ -14,13 +13,9 @@ const addShipsHandler: MessageHandler = (
     const { gameId, indexPlayer, ships } = payload;
     setShips(gameId, indexPlayer, ships);
 
-    const game: Game = getGameById(gameId) as Game;
-    if (game.isGameReadyToStart()) {
-        const playersIds: PlayerId[] = game.getPlayersIds();
-
-        playersIds.forEach((playerId) => {
-            startGameHandler(server, game, playerId);
-        });
+    const game = getGameById(gameId);
+    if (game?.isGameReadyToStart()) {
+        startGameHandler(server, game);
         changeTurnHandler(server, game, indexPlayer);
     }
 };

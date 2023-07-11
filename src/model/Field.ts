@@ -65,7 +65,7 @@ export class Field {
                 return "miss";
             case CELL.SHIP:
                 this.setCell(x, y, CELL.SHIP_HIT);
-                const ship = this.ships.get(this.getCellId(x, y)) as ShipWithPositions;
+                const ship = this.ships.get(this.getCellId(x, y))!;
                 ship.hit(x, y);
                 return ship.isDestroyed() ? "killed" : "shot";
             default:
@@ -74,7 +74,7 @@ export class Field {
     }
 
     public getPositionsAroundShip(x: number, y: number): Position[] {
-        const ship = this.ships.get(this.getCellId(x, y)) as ShipWithPositions;
+        const ship = this.ships.get(this.getCellId(x, y))!;
         let nearByPositions: Position[] = ship.getNearByPositions();
         nearByPositions = nearByPositions.filter((position) => {
             const { x, y } = position;
@@ -84,7 +84,7 @@ export class Field {
     }
 
     public getShipPositions(x: number, y: number): Position[] {
-        const ship = this.ships.get(this.getCellId(x, y)) as ShipWithPositions;
+        const ship = this.ships.get(this.getCellId(x, y))!;
         return ship.getPositions();
     }
 

@@ -30,7 +30,7 @@ const botHandler: MessageHandler = (server: GameServer, _, currentPlayerId: Play
     });
     console.table(externalShips);
 
-    const game = getGameByRoom(room) as Game;
+    const game = getGameByRoom(room)!;
     addShipsHandler(server, _, bot.id, <AddShipsPayload>{
         gameId: game.id,
         indexPlayer: bot.id,

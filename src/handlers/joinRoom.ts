@@ -9,8 +9,6 @@ import {
     setGameInRoom,
 } from "../state.js";
 import { sendRoomsUpdateHandler } from "./updateRooms.js";
-import { Room } from "../model/Room.js";
-import { Game } from "../model/Game.js";
 import { Player } from "../model/Player.js";
 import { GameServer, MessageHandler } from "../server.js";
 
@@ -23,12 +21,12 @@ const joinRoomHandler: MessageHandler = (
     payload: JoinRoomPayload
 ): void => {
     const roomId = payload.indexRoom;
-    const currentPlayer: Player = getPlayerById(currentPlayerId) as Player;
+    const currentPlayer: Player = getPlayerById(currentPlayerId)!;
 
     const joined: boolean = joinRoom(roomId, currentPlayer);
     if (joined) {
-        const room = getRoomById(roomId) as Room;
-        const game = hasGameInRoom(room) ? (getGameByRoom(room) as Game) : createGame();
+        const room = getRoomById(roomId)!;
+        const game = hasGameInRoom(room) ? getGameByRoom(room)! : createGame();
         setGameInRoom(room, game);
         server.sendMessageToPlayer(currentPlayerId, commandName, <CreateGamePayload>{
             idGame: game.id,

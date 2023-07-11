@@ -8,22 +8,25 @@ import { randomAttackHandler } from "./randomAttack.js";
 import { BotPlayer } from "../model/BotPlayer.js";
 
 const commandName: MessageType = "turn";
+const botTurnTimeout = 500;
 
 const changeTurnHandler = (server: GameServer, game: Game, playerId: PlayerId) => {
     game.setTurn(playerId);
-    const room: Room = getRoomByGame(game) as Room;
-    const player = room?.getPlayers().find((player) => player.id === playerId);
+    const room: Room = getRoomByGame(game)!;
+    const player = room.getPlayers().find((player) => player.id === playerId);
     if (player instanceof BotPlayer) {
-        const opponentId: PlayerId = game.getOpponentId(playerId) as PlayerId;
+        const opponentId: PlayerId = game.getOpponentId(playerId)!;
         setTimeout(() => {
             const connection = null as unknown as WebSocket;
             randomAttackHandler(server, connection, opponentId, <RandomAttackPayload>{
                 gameId: game.id,
                 indexPlayer: playerId,
             });
-        }, 500);
+        }, botTurnTimeout);
     } else {
-        server.sendMessageToPlayer(playerId, commandName, <TurnPayload>{ currentPlayer: playerId });
+        game.getPlayersIds().forEach((id: PlayerId) => {
+            server.sendMessageToPlayer(id, commandName, <TurnPayload>{ currentPlayer: playerId });
+        });
     }
 };
 
