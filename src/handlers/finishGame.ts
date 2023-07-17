@@ -1,7 +1,13 @@
 import { Game } from "../model/Game.js";
 import { GameServer } from "../server.js";
 import { PlayerId, FinishGamePayload, MessageType } from "../types.js";
-import { removeGame, assignWinToPlayer, removeRoomByGame } from "../state.js";
+import {
+    removeGame,
+    assignWinToPlayer,
+    removeRoomByGame,
+    isPlayerBot,
+    removePlayer,
+} from "../state.js";
 import { sendRoomsUpdateHandler } from "./updateRooms.js";
 import { sendWinnersUpdateHandler } from "./updateWinners.js";
 
@@ -14,7 +20,11 @@ function finishGameHandler(server: GameServer, game: Game, winnerId: PlayerId): 
             winPlayer: winnerId,
         });
     });
-    assignWinToPlayer(winnerId);
+    if (isPlayerBot(winnerId)) {
+        removePlayer(winnerId);
+    } else {
+        assignWinToPlayer(winnerId);
+    }
     removeGame(game);
     removeRoomByGame(game);
     sendRoomsUpdateHandler(server, "all");

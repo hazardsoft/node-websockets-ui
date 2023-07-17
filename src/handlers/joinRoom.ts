@@ -1,7 +1,6 @@
-import { CreateGamePayload, JoinRoomPayload, MessageType, PlayerId } from "../types.js";
+import { CreateGamePayload, JoinRoomPayload, MessageType, MessageHandler } from "../types.js";
 import {
     joinRoom,
-    getPlayerById,
     getRoomById,
     createGame,
     hasGameInRoom,
@@ -9,30 +8,24 @@ import {
     setGameInRoom,
 } from "../state.js";
 import { sendRoomsUpdateHandler } from "./updateRooms.js";
-import { Player } from "../model/Player.js";
-import { GameServer, MessageHandler } from "../server.js";
 
 const commandName: MessageType = "create_game";
 
-const joinRoomHandler: MessageHandler = (
-    server: GameServer,
-    _,
-    currentPlayerId: PlayerId,
-    payload: JoinRoomPayload
-): void => {
-    const roomId = payload.indexRoom;
-    const currentPlayer: Player = getPlayerById(currentPlayerId)!;
+const joinRoomHandler: MessageHandler = (context, payload): void => {
+    const { indexRoom: roomId } = payload as JoinRoomPayload;
 
-    const joined: boolean = joinRoom(roomId, currentPlayer);
+    const joined: boolean = joinRoom(roomId, context.currentPlayerId!);
     if (joined) {
         const room = getRoomById(roomId)!;
         const game = hasGameInRoom(room) ? getGameByRoom(room)! : createGame();
         setGameInRoom(room, game);
-        server.sendMessageToPlayer(currentPlayerId, commandName, <CreateGamePayload>{
+        context.server.sendMessageToPlayer(context.currentPlayerId!, commandName, <
+            CreateGamePayload
+        >{
             idGame: game.id,
-            idPlayer: currentPlayerId,
+            idPlayer: context.currentPlayerId,
         });
-        sendRoomsUpdateHandler(server, "all");
+        sendRoomsUpdateHandler(context.server, "all");
     }
 };
 

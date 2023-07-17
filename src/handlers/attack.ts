@@ -5,9 +5,10 @@ import {
     MessageType,
     PlayerId,
     Position,
+    MessageHandler,
 } from "../types.js";
 import { getGameById } from "../state.js";
-import { GameServer, MessageHandler } from "../server.js";
+import { GameServer } from "../server.js";
 import { Game } from "../model/Game.js";
 import { changeTurnHandler } from "./changeTurn.js";
 import { finishGameHandler } from "./finishGame.js";
@@ -15,15 +16,16 @@ import { CELL } from "../model/Field.js";
 
 const commandName: MessageType = "attack";
 
-const attackHandler: MessageHandler = (server: GameServer, _, __, payload: AttackPayload): void => {
-    const game = getGameById(payload.gameId);
-    if (game && payload.indexPlayer === game.getTurn()) {
-        const attackerId = payload.indexPlayer;
+const attackHandler: MessageHandler = (context, payload): void => {
+    const { gameId, indexPlayer, x, y } = payload as AttackPayload;
+    const game = getGameById(gameId);
+    if (game && indexPlayer === game.getTurn()) {
+        const attackerId = indexPlayer;
         const opponentId = game.getOpponentId(attackerId)!;
 
-        const attackResult = game.attackPlayer(opponentId, payload.x, payload.y);
+        const attackResult = game.attackPlayer(opponentId, x, y);
         if (attackResult && attackResult.type !== "none") {
-            handleAttackResults(server, game, attackerId, opponentId, attackResult);
+            handleAttackResults(context.server, game, attackerId, opponentId, attackResult);
         } else {
             // player tries to attack field with already known result
         }

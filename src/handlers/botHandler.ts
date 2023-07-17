@@ -1,19 +1,20 @@
-import { GameServer, MessageHandler } from "../server.js";
-import { PlayerId, JoinRoomPayload, AddShipsPayload, Ship, ShipTypes } from "../types.js";
+import { JoinRoomPayload, AddShipsPayload, Ship, ShipTypes, MessageHandler } from "../types.js";
 import { joinRoomHandler } from "./joinRoom.js";
-import { createRoom, getGameByRoom } from "../state.js";
+import { addPlayer, createRoom, getGameByRoom } from "../state.js";
 import { addShipsHandler } from "./addShips.js";
-import { Game } from "../model/Game.js";
 import { ShipsGenerator } from "../model/ShipsGenerator.js";
 import { BotPlayer } from "../model/BotPlayer.js";
+import { sendRoomsUpdateHandler } from "./updateRooms.js";
 
-const botHandler: MessageHandler = (server: GameServer, _, currentPlayerId: PlayerId): void => {
+const botHandler: MessageHandler = (context): void => {
     const room = createRoom();
-    joinRoomHandler(server, _, currentPlayerId, <JoinRoomPayload>{
+    joinRoomHandler(context, <JoinRoomPayload>{
         indexRoom: room.id,
     });
     const bot = new BotPlayer();
-    room.addPlayer(bot);
+    addPlayer(bot);
+    room.addPlayer(bot.id);
+    sendRoomsUpdateHandler(context.server, "all");
 
     const ships = new ShipsGenerator().generateShips();
     const externalShips: Ship[] = [];
@@ -28,10 +29,9 @@ const botHandler: MessageHandler = (server: GameServer, _, currentPlayerId: Play
             type: ShipTypes[positions.length],
         });
     });
-    console.table(externalShips);
 
     const game = getGameByRoom(room)!;
-    addShipsHandler(server, _, bot.id, <AddShipsPayload>{
+    addShipsHandler({ server: context.server, currentPlayerId: bot.id }, <AddShipsPayload>{
         gameId: game.id,
         indexPlayer: bot.id,
         ships: externalShips,

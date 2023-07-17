@@ -1,30 +1,33 @@
-import { RoomId } from "../types.js";
-import { Player } from "./Player.js";
+import { PlayerId, RoomId } from "../types.js";
 
 const MAX_NUMBER_OF_PLAYERS = 2;
 
 export class Room {
-    private players: Player[] = [];
+    private playerIds: PlayerId[] = [];
 
     constructor(public id: RoomId) {}
 
-    public addPlayer(player: Player): void {
-        this.players.push(player);
+    public addPlayer(id: PlayerId): void {
+        this.playerIds.push(id);
     }
 
-    public getPlayers(): Player[] {
-        return this.players.slice();
+    public getPlayers(): PlayerId[] {
+        return this.playerIds.slice();
     }
 
     public removePlayers(): void {
-        this.players.length = 0;
+        this.playerIds.length = 0;
     }
 
     public isEmpty(): boolean {
-        return this.players.length === 0;
+        return this.playerIds.length === 0;
     }
 
     public isFull(): boolean {
-        return this.players.length == MAX_NUMBER_OF_PLAYERS;
+        return this.playerIds.length == MAX_NUMBER_OF_PLAYERS;
+    }
+
+    public toString(): string {
+        return `Room #${this.id}: players ${this.playerIds}`;
     }
 }

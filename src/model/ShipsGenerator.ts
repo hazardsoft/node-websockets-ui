@@ -30,7 +30,6 @@ class ShipsGenerator {
                 ships.push(ship);
             }
         }
-        console.table(this.field);
         return ships;
     }
 

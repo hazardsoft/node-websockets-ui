@@ -7,14 +7,13 @@ import {
     MessageType,
 } from "../types.js";
 import { Room as InternalRoom } from "../model/Room.js";
-import { Player as InternalPlayer } from "../model/Player.js";
-import { getRooms } from "../state.js";
+import { getPlayerById, getRooms } from "../state.js";
 import { GameServer } from "../server.js";
 
 const commandName: MessageType = "update_room";
 
 function sendRoomsUpdateHandler(
-    gameServer: GameServer,
+    server: GameServer,
     notificationType: NotificationType,
     playerId?: PlayerId
 ): void {
@@ -22,12 +21,13 @@ function sendRoomsUpdateHandler(
     const payload: UpdateRoomsPayload = rooms.map((room: InternalRoom) => {
         return <Room>{
             roomId: room.id,
-            roomUsers: room
-                .getPlayers()
-                .map((player: InternalPlayer) => <RoomUser>{ name: player.name, index: player.id }),
+            roomUsers: room.getPlayers().map((playerId: PlayerId) => {
+                const player = getPlayerById(playerId);
+                return <RoomUser>{ name: player?.name, index: player?.id };
+            }),
         };
     });
-    gameServer.sendNotification(commandName, payload, notificationType, playerId);
+    server.sendNotification(commandName, payload, notificationType, playerId);
 }
 
 export { sendRoomsUpdateHandler };

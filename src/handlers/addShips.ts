@@ -1,22 +1,16 @@
-import { GameServer, MessageHandler } from "../server.js";
 import { getGameById, setShips } from "../state.js";
-import { AddShipsPayload } from "../types.js";
+import { AddShipsPayload, MessageHandler } from "../types.js";
 import { startGameHandler } from "./startGame.js";
 import { changeTurnHandler } from "./changeTurn.js";
 
-const addShipsHandler: MessageHandler = (
-    server: GameServer,
-    _,
-    __,
-    payload: AddShipsPayload
-): void => {
-    const { gameId, indexPlayer, ships } = payload;
+const addShipsHandler: MessageHandler = (context, payload): void => {
+    const { gameId, indexPlayer, ships } = payload as AddShipsPayload;
     setShips(gameId, indexPlayer, ships);
 
     const game = getGameById(gameId);
     if (game?.isGameReadyToStart()) {
-        startGameHandler(server, game);
-        changeTurnHandler(server, game, indexPlayer);
+        startGameHandler(context.server, game);
+        changeTurnHandler(context.server, game, indexPlayer);
     }
 };
 

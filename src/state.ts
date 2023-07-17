@@ -1,15 +1,17 @@
-import { randomUUID } from "node:crypto";
-import { PlayerId, Ship } from "./types.js";
+import { PlayerId, Ship, Wins } from "./types.js";
 import { Player } from "./model/Player.js";
 import { Game } from "./model/Game.js";
 import { Room } from "./model/Room.js";
 import { AlreadyAuthenticated, IncorrectCredentials, UserNotFound } from "./errors.js";
+import { generateGameId, generatePlayerId, generateRoomId } from "./utils/id_generator.js";
+import { BotPlayer } from "./model/BotPlayer.js";
 
 const players: Player[] = [];
 const activePlayers: Player[] = [];
 const rooms: Room[] = [];
 const games: Game[] = [];
 const gamesInRooms: Map<Room, Game> = new Map();
+const winners: Map<PlayerId, Wins> = new Map();
 
 function authPlayer(name: string, password: string): Player {
     const authPlayer = activePlayers.find((player) => player.name === name);
@@ -23,9 +25,18 @@ function authPlayer(name: string, password: string): Player {
 }
 
 function registerPlayer(name: string, password: string): Player {
-    const player: Player = new Player(randomUUID(), name, password.trim());
+    const player: Player = new Player(generatePlayerId(), name, password.trim());
     players.push(player);
     return player;
+}
+
+function addPlayer(player: Player): void {
+    players.push(player);
+}
+
+function removePlayer(playerId: PlayerId): void {
+    const index = players.findIndex((player) => player.id === playerId);
+    if (index !== -1) players.splice(index, 1);
 }
 
 function addActivePlayer(player: Player): void {
@@ -38,7 +49,7 @@ function removeActivePlayer(playerId: PlayerId): void {
 }
 
 function createRoom(): Room {
-    const room: Room = new Room(randomUUID());
+    const room: Room = new Room(generateRoomId());
     rooms.push(room);
     return room;
 }
@@ -85,10 +96,10 @@ function getPlayerById(id: string): Player | undefined {
     return players.find((player) => player.id === id);
 }
 
-function joinRoom(roomId: string, player: Player): boolean {
-    const room: Room | undefined = rooms.find((room) => room.id === roomId);
+function joinRoom(roomId: string, playerId: PlayerId): boolean {
+    const room = rooms.find((room) => room.id === roomId);
     if (!room || room.isFull()) return false;
-    room.addPlayer(player);
+    room.addPlayer(playerId);
     return true;
 }
 
@@ -96,17 +107,8 @@ function getRoomById(roomId: string): Room | undefined {
     return rooms.find((room) => room.id === roomId);
 }
 
-function getRoomByGame(game: Game): Room | undefined {
-    for (const [r, g] of gamesInRooms.entries()) {
-        if (g === game) {
-            return r;
-        }
-    }
-    return undefined;
-}
-
 function createGame(): Game {
-    const game: Game = new Game(randomUUID());
+    const game: Game = new Game(generateGameId());
     games.push(game);
     return game;
 }
@@ -132,16 +134,30 @@ function setShips(gameId: string, playerId: string, ships: Ship[]): void {
 }
 
 function assignWinToPlayer(playerId: PlayerId): void {
+    let curWins = winners.has(playerId) ? winners.get(playerId)! : 0;
+    winners.set(playerId, ++curWins);
+}
+
+function getWins(): Record<PlayerId, Wins> {
+    const winRecords: Record<PlayerId, Wins> = {};
+    winners.forEach((wins, playerId) => {
+        winRecords[playerId] = wins;
+    });
+    return winRecords;
+}
+
+function isPlayerBot(playerId: PlayerId): boolean {
     const player = getPlayerById(playerId);
-    if (player) {
-        player.wins++;
-    }
+    return player ? player instanceof BotPlayer : true;
 }
 
 export {
     authPlayer,
     registerPlayer,
     addActivePlayer,
+    addPlayer,
+    removePlayer,
+    isPlayerBot,
     removeActivePlayer,
     createRoom,
     getRooms,
@@ -158,7 +174,7 @@ export {
     getGameByRoom,
     setGameInRoom,
     removeRoomByGame,
-    getPlayers,
     getGameByPlayerId,
-    getRoomByGame
+    getPlayers,
+    getWins,
 };

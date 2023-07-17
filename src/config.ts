@@ -8,5 +8,6 @@ const shipsConfig: Map<ShipSize, ShipNum> = new Map([
     [4, 1],
 ]);
 const FIELD_SIZE = 10;
+const botTurnTimeout = 500;
 
-export { shipsConfig, FIELD_SIZE };
+export { shipsConfig, FIELD_SIZE, botTurnTimeout };

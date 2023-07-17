@@ -1,14 +1,13 @@
-import { randomUUID } from "crypto";
 import { Player } from "./Player.js";
-
-let botIndex: number = 0;
+import { generatePlayerId } from "../utils/id_generator.js";
 
 export class BotPlayer extends Player {
     constructor() {
-        super(randomUUID(), `bot#${botIndex++}`, "");
+        const id = generatePlayerId();
+        super(id, `bot#${id}`, "");
     }
 
     public toString(): string {
-        return `Bot: ${super.toString()}`;
+        return `Bot: id ${this.id}, name ${this.name}`;
     }
 }

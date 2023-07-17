@@ -1,6 +1,10 @@
+import { GameServer } from "./server.js";
+import { WebSocket } from "ws";
+
 type PlayerId = string;
 type RoomId = string;
 type GameId = string;
+type Wins = number;
 
 type MessageType =
     | "reg"
@@ -22,6 +26,29 @@ type Message = {
     data: string;
     id: number;
 };
+
+type MessageInboundPayload =
+    | LoginPayload
+    | AttackPayload
+    | AddShipsPayload
+    | JoinRoomPayload
+    | RandomAttackPayload;
+type MessageOutboundPayload =
+    | LoginResponsePayload
+    | CreateGamePayload
+    | AttackResponsePayload
+    | TurnPayload
+    | WinnerPayload
+    | StartGamePayload
+    | UpdateRoomsPayload
+    | FinishGamePayload;
+
+type HandlerContext = {
+    server: GameServer;
+    connection?: WebSocket;
+    currentPlayerId?: PlayerId;
+};
+type MessageHandler = (context: HandlerContext, payload: MessageInboundPayload) => void;
 
 type NotificationType = "all" | "self" | "others";
 
@@ -153,4 +180,9 @@ export {
     Winner,
     WinnerPayload,
     ShipTypes,
+    MessageHandler,
+    Wins,
+    MessageInboundPayload,
+    MessageOutboundPayload,
+    HandlerContext,
 };

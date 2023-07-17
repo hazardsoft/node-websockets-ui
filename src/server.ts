@@ -1,7 +1,15 @@
 import { IncomingMessage } from "http";
 import { WebSocket, WebSocketServer, AddressInfo } from "ws";
 import { getActivePlayers, removeActivePlayer } from "./state.js";
-import { Message, PlayerId, MessageType, NotificationType } from "./types.js";
+import {
+    Message,
+    PlayerId,
+    MessageType,
+    NotificationType,
+    MessageInboundPayload,
+    MessageOutboundPayload,
+    MessageHandler,
+} from "./types.js";
 import { loginHandler } from "./handlers/login.js";
 import { joinRoomHandler } from "./handlers/joinRoom.js";
 import { attackHandler } from "./handlers/attack.js";
@@ -10,13 +18,6 @@ import { randomAttackHandler } from "./handlers/randomAttack.js";
 import { createRoomHandler } from "./handlers/createRoom.js";
 import { forceFinishGameHandler } from "./handlers/forceFinish.js";
 import { botHandler } from "./handlers/botHandler.js";
-
-type MessageHandler = (
-    server: GameServer,
-    connection: WebSocket,
-    currentPlayerId: PlayerId,
-    payload: any
-) => void;
 
 class GameServer {
     private connections: Map<PlayerId, WebSocket> = new Map();
@@ -43,7 +44,7 @@ class GameServer {
 
         const { address, port: p, family } = this.wss.address() as AddressInfo;
         console.log(
-            `WebSocket server is up and running: address ${address}, port ${p}, family ${family}}`
+            `WebSocket server is up and running: address ${address}, port ${p}, family ${family}`
         );
 
         this.wss.on("connection", (ws: WebSocket, req: IncomingMessage): void => {
@@ -54,29 +55,37 @@ class GameServer {
                 this.removeConnection(ws);
             });
 
-            ws.on("message", (data: Buffer | ArrayBuffer | Buffer[], isBinary: boolean) => {
+            ws.on("message", (data: Buffer | ArrayBuffer | Buffer[]) => {
                 console.log("-> inbound message %s", data);
 
                 const message: Message = JSON.parse(data.toString());
-                const payload: Record<string, unknown> =
+                const payload: MessageInboundPayload =
                     message.data && message.data.length ? JSON.parse(message.data) : null;
                 const handler = this.handlers[message.type];
                 if (handler) {
                     const currentPlayerId = this.getPlayerIdByConnection(ws);
-                    handler(this, ws, currentPlayerId || "", payload);
+                    handler({ server: this, connection: ws, currentPlayerId }, payload);
                 }
             });
         });
     }
 
-    public sendMessageToPlayer(playerId: PlayerId, messageType: MessageType, payload: any): void {
+    public sendMessageToPlayer(
+        playerId: PlayerId,
+        messageType: MessageType,
+        payload: MessageOutboundPayload
+    ): void {
         const connection = this.getConnectionByPlayerId(playerId);
         if (connection) {
             this.sendMessage(connection, messageType, payload);
         }
     }
 
-    public sendMessage(connection: WebSocket, messageType: MessageType, payload: any): void {
+    public sendMessage(
+        connection: WebSocket,
+        messageType: MessageType,
+        payload: MessageOutboundPayload
+    ): void {
         const message: Message = {
             type: messageType,
             data: payload ? JSON.stringify(payload) : "",
@@ -88,7 +97,7 @@ class GameServer {
 
     public sendNotification(
         messageType: MessageType,
-        payload: any,
+        payload: MessageOutboundPayload,
         notificationType: NotificationType,
         fromPlayerId?: PlayerId
     ): void {
@@ -142,4 +151,4 @@ class GameServer {
     }
 }
 
-export { GameServer, MessageHandler };
+export { GameServer };
