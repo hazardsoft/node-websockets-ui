@@ -1,4 +1,4 @@
-import { AttackResult, PlayerId, Position } from "../types.js";
+import { AttackResult, GameId, PlayerId, Position } from "../types.js";
 import { AttackResultType, Ship } from "../types.js";
 import { Field, OpponentField, CELL } from "./Field.js";
 
@@ -9,9 +9,9 @@ type PlayerFields = {
 
 export class Game {
     private fields: Map<PlayerId, PlayerFields> = new Map();
-    private turnOfPlayerId: PlayerId = "";
+    private turnOfPlayerId: PlayerId = 0;
 
-    constructor(public id: string) {}
+    constructor(public id: GameId) {}
 
     public setShipsByPlayerId(playerId: PlayerId, ships: Ship[]): void {
         if (!this.fields.has(playerId)) {

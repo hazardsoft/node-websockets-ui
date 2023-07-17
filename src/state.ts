@@ -1,4 +1,4 @@
-import { PlayerId, Ship, Wins } from "./types.js";
+import { GameId, PlayerId, RoomId, Ship, Win } from "./types.js";
 import { Player } from "./model/Player.js";
 import { Game } from "./model/Game.js";
 import { Room } from "./model/Room.js";
@@ -11,7 +11,7 @@ const activePlayers: Player[] = [];
 const rooms: Room[] = [];
 const games: Game[] = [];
 const gamesInRooms: Map<Room, Game> = new Map();
-const winners: Map<PlayerId, Wins> = new Map();
+const winners: Map<PlayerId, Win> = new Map();
 
 function authPlayer(name: string, password: string): Player {
     const authPlayer = activePlayers.find((player) => player.name === name);
@@ -92,18 +92,18 @@ function getPlayers(): Player[] {
     return players.slice();
 }
 
-function getPlayerById(id: string): Player | undefined {
+function getPlayerById(id: PlayerId): Player | undefined {
     return players.find((player) => player.id === id);
 }
 
-function joinRoom(roomId: string, playerId: PlayerId): boolean {
+function joinRoom(roomId: RoomId, playerId: PlayerId): boolean {
     const room = rooms.find((room) => room.id === roomId);
     if (!room || room.isFull()) return false;
     room.addPlayer(playerId);
     return true;
 }
 
-function getRoomById(roomId: string): Room | undefined {
+function getRoomById(roomId: RoomId): Room | undefined {
     return rooms.find((room) => room.id === roomId);
 }
 
@@ -118,7 +118,7 @@ function removeGame(game: Game): void {
     games.splice(gameIndex, 1);
 }
 
-function getGameById(id: string): Game | undefined {
+function getGameById(id: GameId): Game | undefined {
     return games.find((game) => game.id === id);
 }
 
@@ -126,7 +126,7 @@ function getGameByPlayerId(playerId: PlayerId): Game | undefined {
     return games.find((game) => game.getPlayersIds().includes(playerId));
 }
 
-function setShips(gameId: string, playerId: string, ships: Ship[]): void {
+function setShips(gameId: GameId, playerId: PlayerId, ships: Ship[]): void {
     const game: Game | undefined = getGameById(gameId);
     if (game) {
         game.setShipsByPlayerId(playerId, ships);
@@ -138,12 +138,8 @@ function assignWinToPlayer(playerId: PlayerId): void {
     winners.set(playerId, ++curWins);
 }
 
-function getWins(): Record<PlayerId, Wins> {
-    const winRecords: Record<PlayerId, Wins> = {};
-    winners.forEach((wins, playerId) => {
-        winRecords[playerId] = wins;
-    });
-    return winRecords;
+function getWins(): Map<PlayerId, Win> {
+    return winners;
 }
 
 function isPlayerBot(playerId: PlayerId): boolean {

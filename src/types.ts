@@ -1,10 +1,10 @@
 import { GameServer } from "./server.js";
 import { WebSocket } from "ws";
 
-type PlayerId = string;
-type RoomId = string;
-type GameId = string;
-type Wins = number;
+type PlayerId = number;
+type RoomId = number;
+type GameId = number;
+type Win = number;
 
 type MessageType =
     | "reg"
@@ -59,18 +59,18 @@ type LoginPayload = {
 
 type LoginResponsePayload = {
     name: string;
-    index: string;
+    index: PlayerId;
     error: boolean;
     errorText: string;
 };
 
 type JoinRoomPayload = {
-    indexRoom: string;
+    indexRoom: GameId;
 };
 
 type CreateGamePayload = {
-    idGame: string;
-    idPlayer: string;
+    idGame: GameId;
+    idPlayer: PlayerId;
 };
 
 type ShipType = "small" | "medium" | "large" | "huge";
@@ -83,39 +83,39 @@ type Ship = {
 
 type RoomUser = {
     name: string;
-    index: string;
+    index: PlayerId;
 };
 type Room = {
-    roomId: string;
+    roomId: RoomId;
     roomUsers: RoomUser[];
 };
 type UpdateRoomsPayload = Room[];
 
 type AddShipsPayload = {
-    gameId: string;
-    indexPlayer: string;
+    gameId: GameId;
+    indexPlayer: PlayerId;
     ships: Ship[];
 };
 
 type StartGamePayload = {
-    currentPlayerIndex: string;
+    currentPlayerIndex: PlayerId;
     ships: Ship[];
 };
 
 type TurnPayload = {
-    currentPlayer: string;
+    currentPlayer: PlayerId;
 };
 
 type AttackPayload = {
-    gameId: string;
+    gameId: GameId;
     x: number;
     y: number;
-    indexPlayer: string;
+    indexPlayer: PlayerId;
 };
 
 type AttackResponsePayload = {
     position: { x: number; y: number };
-    currentPlayer: string;
+    currentPlayer: PlayerId;
     status: AttackResultType;
 };
 
@@ -127,17 +127,17 @@ type AttackResult = {
 type AttackResultType = "miss" | "killed" | "shot" | "none";
 
 type FinishGamePayload = {
-    winPlayer: string;
+    winPlayer: PlayerId;
 };
 
 type RandomAttackPayload = {
-    gameId: string;
-    indexPlayer: string;
+    gameId: GameId;
+    indexPlayer: PlayerId;
 };
 
 type Winner = {
     name: string;
-    wins: number;
+    wins: Win;
 };
 
 type WinnerPayload = Winner[];
@@ -181,7 +181,7 @@ export {
     WinnerPayload,
     ShipTypes,
     MessageHandler,
-    Wins,
+    Win,
     MessageInboundPayload,
     MessageOutboundPayload,
     HandlerContext,

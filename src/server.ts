@@ -126,7 +126,7 @@ class GameServer {
         this.connections.set(playerId, connection);
     }
 
-    public getConnectionByPlayerId(playerId: string): WebSocket | undefined {
+    public getConnectionByPlayerId(playerId: PlayerId): WebSocket | undefined {
         return this.connections.get(playerId);
     }
 

@@ -1,6 +1,6 @@
 import { GameServer } from "../server.js";
 import { getPlayerById, getWins } from "../state.js";
-import { MessageType, NotificationType, PlayerId, Winner, WinnerPayload } from "../types.js";
+import { MessageType, NotificationType, PlayerId, Winner, WinnerPayload, Win } from "../types.js";
 
 const commandName: MessageType = "update_winners";
 
@@ -10,13 +10,12 @@ function sendWinnersUpdateHandler(
     playerId?: PlayerId
 ): void {
     const payload: WinnerPayload = [];
-    const wins = getWins();
-    for (const playerId in wins) {
+    getWins().forEach((wins: Win, playerId: PlayerId) => {
         const player = getPlayerById(playerId);
         if (player) {
-            payload.push(<Winner>{ name: player.name, wins: wins[playerId] });
+            payload.push(<Winner>{ name: player.name, wins });
         }
-    }
+    });
 
     server.sendNotification(commandName, payload, notificationType, playerId);
 }

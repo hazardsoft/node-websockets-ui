@@ -1,14 +1,17 @@
-import { randomUUID } from "crypto";
 import { GameId, PlayerId, RoomId } from "../types.js";
 
+let playerIndex = 0;
+let roomIndex = 0;
+let gameIndex = 0;
+
 export function generatePlayerId(): PlayerId {
-    return randomUUID();
+    return ++playerIndex;
 }
 
 export function generateRoomId(): RoomId {
-    return randomUUID();
+    return ++roomIndex;
 }
 
 export function generateGameId(): GameId {
-    return randomUUID();
+    return ++gameIndex;
 }

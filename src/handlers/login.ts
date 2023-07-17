@@ -48,7 +48,7 @@ const loginHandler: MessageHandler = (context, payload): void => {
 function sendError(context: HandlerContext, name: string, errorMessage: string): void {
     context.server.sendMessage(context.connection!, commandName, <LoginResponsePayload>{
         name: name,
-        index: "",
+        index: 0,
         error: true,
         errorText: errorMessage,
     });
